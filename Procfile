@@ -1,1 +1,1 @@
-web: gunicorn -w 4 -k uvicorn.workers.UvicornWorker grocerystore.main:app
+web: gunicorn -k uvicorn.workers.UvicornWorker --log-level debug grocerystore.main:app
