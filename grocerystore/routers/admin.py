@@ -2,7 +2,7 @@ import shutil
 
 from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException
 from sqlalchemy.orm import Session
-from .. import database, schemas, models, hashing
+from .. import database, schemas, models, hashing, oauth2
 from ..hashing import Hash
 from typing import List
 from pathlib import Path
@@ -28,13 +28,13 @@ get_db = database.get_db
 
 
 @router.get("/", response_model=List[schemas.Product])
-def all_products(db: Session= Depends(get_db)):
+def all_products(db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
     """FETCH ALL PRODUCTS AVAILABLE IN GROCERY"""
     return admin.all_products(db)
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def add_product(request: List[schemas.Product], db: Session= Depends(get_db)):
+def add_product(request: List[schemas.Product], db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
     # file_location = f"{ROOT_DIR}/product_image/{product_image.filename}"
     # suffix = Path(product_image.filename).suffix
     # if suffix in ['.png', '.jpg', '.jpeg']:

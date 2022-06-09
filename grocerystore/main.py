@@ -4,7 +4,10 @@ from . import models, schemas
 from .database import engine
 from .routers import admin, authentication
 
-app = FastAPI()
+app = FastAPI(
+    title='Grocery Store',
+    description='FastAPI Implemented Grocery Store System'
+)
 models.Base.metadata.create_all(engine)
 
 
