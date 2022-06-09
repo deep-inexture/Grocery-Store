@@ -26,6 +26,8 @@ def registration(request: schemas.User, db: Session= Depends(get_db)):
 @router.post('/login')
 def login(request: OAuth2PasswordRequestForm= Depends(), db: Session = Depends(database.get_db)):
     user = db.query(models.User).filter(models.User.email == request.username).first()
+    if request.username != "admin@admin.in":
+        raise HTTPException(status_code=401, detail="UnAuthorized User! Only Admin Access Allowed.")
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Invalid Credentials")
     if not Hash.verify(user.password, request.password):
