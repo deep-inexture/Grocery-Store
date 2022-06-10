@@ -21,3 +21,8 @@ def add_product(request: List[schemas.Product], db: Session):
     db.commit()
     db.refresh(new_item)
     return {'status': 'Done'}
+
+
+def fetch_data(item_id: int, db: Session):
+    fetch_item = db.query(models.Product).where(models.Product.id == item_id).first()
+    return fetch_item
