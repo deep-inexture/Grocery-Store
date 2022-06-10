@@ -3,14 +3,19 @@ from typing import List, Optional
 
 
 class ProductBase(BaseModel):
-    image_file: str
-    title: str
-    description: str
-    price: float
-    quantity: int
+    image_file: str = 'default.png'
+    title: str = ''
+    description: str = ''
+    price: float = 0
+    quantity: int = 0
+
+    class Config():
+        orm_mode=True
 
 
 class Product(ProductBase):
+    id: int
+
     class Config():
         orm_mode=True
 

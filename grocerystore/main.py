@@ -1,6 +1,5 @@
 from fastapi import FastAPI
-import uvicorn
-from . import models, schemas
+from . import models
 from .database import engine
 from .routers import admin, authentication
 
