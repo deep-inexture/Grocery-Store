@@ -1,6 +1,9 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+# Following File contains BaseModel for each table to make it visible in json format while building API's.'
+# Each of them can be called as per requirements in response_model in routers.
+
 
 class ProductBase(BaseModel):
     image_file: str = 'default.png'

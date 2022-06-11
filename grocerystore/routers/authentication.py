@@ -4,6 +4,8 @@ from .. import schemas, database, models, token
 from ..hashing import Hash
 from sqlalchemy.orm import Session
 
+# It includes Authentication routers for both User & Admin
+
 router = APIRouter(
     tags=["Authentication"]
 )

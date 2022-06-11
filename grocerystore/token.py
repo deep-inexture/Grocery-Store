@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from . import schemas
 
+# Following file generates Token after each correct Authentication and need to re-login oncce 30 min
+# Expiry time is over.It is connected to oauth2 file where User gets stored as session variable.
+
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
