@@ -1,21 +1,24 @@
-import sqlalchemy
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
 
-# Below function will load the required Environment varaible to use anywhere in particular file.
+# Below function will load the required Environment variable to use anywhere in particular file.
 load_dotenv()
 
 # Connecting to Database using env variable which stores database URL.
-# engine = sqlalchemy.create_engine(os.environ.get('DATABASE_URL_POSTGRES'), echo=True)
-engine = create_engine(os.environ.get('LOCAL_DATABASE_URL'), echo=True)
+engine = create_engine(os.environ.get('DB_URL'), echo=True)
 
 Base = declarative_base()
 SessionLocal = sessionmaker(bind=engine)
 
-# Following function can be called everytime to initialize db varaible and use while fireing query.
+
+# Following function can be called everytime to initialize db variable and use while firing query.
 def get_db():
+    """
+    This Method provides variable db which has access to all models section column names.
+    Thus it passes query to database and acts as its object.
+    """
     db = SessionLocal()
     try:
         yield db

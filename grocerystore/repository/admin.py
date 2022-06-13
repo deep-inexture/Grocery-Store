@@ -58,7 +58,7 @@ def update_product(item_id: int, db: Session, item: schemas.ProductBase):
 
 def delete_product(item_id: int, db: Session):
     delete_item = db.query(models.Product).filter(models.Product.id == item_id).first()
-    if delete_item is None:
+    if not delete_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item Does Not Exists!!!")
     items_found = fetch_data(item_id, db)
     title = getattr(items_found, 'title')

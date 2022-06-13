@@ -7,6 +7,7 @@ from pathlib import Path
 import os
 from ..repository import admin
 from tempfile import NamedTemporaryFile
+from functools import wraps
 
 # This File Contains all Admin Related Routes such as ADD | UPDATE | DELETE Products and many more.
 # All validations and query gets fired in other file with same name in repository directory.
@@ -20,6 +21,17 @@ router = APIRouter(
 get_db = database.get_db
 
 
+# def is_admin(func):
+#     @wraps(func)
+#     def wrapper(*args, **kwargs):
+#         print('----------------------------------------------------')
+#         print(*args)
+#         print(**kwargs)
+#         return func(*args, **kwargs)
+#
+#     return wrapper
+
+
 # @router.get('/user/{id}', response_model=schemas.ShowUser)
 # def get_user(id: int, db: Session= Depends(get_db)):
 #     user = db.query(models.User).filter(models.User.id == id).first()
@@ -30,13 +42,21 @@ get_db = database.get_db
 
 @router.get("/get_items", response_model=List[schemas.Product])
 def all_products(db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
-    """FETCH ALL PRODUCTS AVAILABLE IN GROCERY"""
+    """
+    FETCH ALL PRODUCTS AVAILABLE IN GROCERY
+    """
+    if current_user.email != 'admin@admin.in':
+        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return admin.all_products(db)
 
 
 @router.post("/create_items", status_code=status.HTTP_201_CREATED)
 def add_product(request: List[schemas.ProductBase], db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
-    """ADD PRODUCTS TO SHOW IN GROCERY"""
+    """
+    ADD PRODUCTS TO SHOW IN GROCERY
+    """
+    if current_user.email != 'admin@admin.in':
+        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     # file_location = f"{ROOT_DIR}/product_image/{product_image.filename}"
     # suffix = Path(product_image.filename).suffix
     # if suffix in ['.png', '.jpg', '.jpeg']:
@@ -50,11 +70,19 @@ def add_product(request: List[schemas.ProductBase], db: Session= Depends(get_db)
 
 @router.put("/update_item/{item_id}", status_code=status.HTTP_200_OK)
 def update_product(item_id: int, item: schemas.ProductBase, db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
-    """UPDATE PRODUCTS FOR GROCERY"""
+    """
+    UPDATE PRODUCTS FOR GROCERY
+    """
+    if current_user.email != 'admin@admin.in':
+        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return admin.update_product(item_id, db, item)
 
 
 @router.delete("/delete_item/{item_id}", status_code=status.HTTP_200_OK)
 def delete_product(item_id: int, db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
-    """DELETE ITEMS NOT IN GROCERY"""
+    """
+    DELETE ITEMS NOT IN GROCERY
+    """
+    if current_user.email != 'admin@admin.in':
+        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return admin.delete_product(item_id, db)

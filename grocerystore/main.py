@@ -13,7 +13,7 @@ app = FastAPI(
 # Following command will create new tables if not exists in Database.
 models.Base.metadata.create_all(engine)
 
-# Following command will call the each routers and stored in different files for clean flow of project .
+# Following command will call the routers and stored in different files for clean flow of project .
 app.include_router(authentication.router)
 app.include_router(admin.router)
 

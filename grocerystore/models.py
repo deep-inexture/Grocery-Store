@@ -1,5 +1,5 @@
 from .database import Base
-from sqlalchemy import String, Integer, Boolean, Text, Column, Float
+from sqlalchemy import String, Integer, Column, Float, Boolean
 
 # This files stores schemas of tables like tableName, tableColumn, and its Datatype.
 # Main file sees into this file first for each non created table to be generated or not.
