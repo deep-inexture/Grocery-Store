@@ -1,19 +1,23 @@
-from typing import Optional
-from fastapi import HTTPException
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from . import schemas
+from dotenv import load_dotenv
+import os
 
-# Following file generates Token after each correct Authentication and need to re-login oncce 30 min
+# Following file generates Token after each correct Authentication and need to re-login once 30 min
 # Expiry time is over.It is connected to oauth2 file where User gets stored as session variable.
 
+load_dotenv()
 
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+SECRET_KEY = os.environ.get('SECRET_KEY')
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def create_access_token(data: dict):
+    """
+    Create Access Token using JWT and return encoded token to Login Section
+    """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
@@ -22,11 +26,16 @@ def create_access_token(data: dict):
 
 
 def verify_token(token: str, credentials_exception):
+    """
+    Once User gets login verify token using below method. And this code will be accessible for 30
+    minutes.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
-        if email is None or email != "admin@admin.in":
+        if not email:
             raise credentials_exception
         token_data = schemas.TokenData(email=email)
+        return token_data
     except JWTError:
         raise credentials_exception

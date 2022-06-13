@@ -14,6 +14,9 @@ get_db = database.get_db
 
 @router.post('/register', response_model=schemas.User)
 def registration(request: schemas.User, db: Session= Depends(get_db)):
+    """
+    Registration User Authentication Requirements
+    """
     user = db.query(models.User).filter(models.User.email == request.email).first()
     if user:
         raise HTTPException(status_code=409, detail=f"{request.email} Already Exists. Please Try Another Email-ID")
@@ -26,10 +29,11 @@ def registration(request: schemas.User, db: Session= Depends(get_db)):
 
 
 @router.post('/login')
-def login(request: OAuth2PasswordRequestForm= Depends(), db: Session = Depends(database.get_db)):
+def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    """
+    Login Process for both Admin and User.
+    """
     user = db.query(models.User).filter(models.User.email == request.username).first()
-    # if request.username != "admin@admin.in":
-    #     raise HTTPException(status_code=401, detail="UnAuthorized User! Only Admin Access Allowed.")
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Invalid Credentials")
     if not Hash.verify(user.password, request.password):
