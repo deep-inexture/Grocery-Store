@@ -13,12 +13,10 @@ get_db = database.get_db
 
 
 @router.get("/view_products", response_model=List[schemas.Product])
-def view_products(db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
+def view_products(db: Session= Depends(get_db)):
     """
     Any User has access to view all the products available in grocery db.
     """
-    if current_user.email == 'admin@admin.in':
-        raise HTTPException(status_code=401, detail=f"You are not Allowed to view Users Page!")
     return users.view_products(db)
 
 
