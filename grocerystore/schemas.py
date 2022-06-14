@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 
-# Following File contains BaseModel for each table to make it visible in json format while building API's.'
+# Following File contains BaseModel for each table to make it visible in json format while building APIs.'
 # Each of them can be called as per requirements in response_model in routers.
 
 
@@ -13,14 +13,14 @@ class ProductBase(BaseModel):
     quantity: int = 0
 
     class Config():
-        orm_mode=True
+        orm_mode = True
 
 
 class Product(ProductBase):
     id: int
 
     class Config():
-        orm_mode=True
+        orm_mode = True
 
 
 class User(BaseModel):
@@ -29,14 +29,14 @@ class User(BaseModel):
     password: str
 
     class Config():
-        orm_mode=True
+        orm_mode = True
 
 
 class UserRegister(User):
     confirm_password: str
 
     class Config():
-        orm_mode=True
+        orm_mode = True
 
 
 class ShowUser(BaseModel):
@@ -44,7 +44,7 @@ class ShowUser(BaseModel):
     email: str
 
     class Config():
-        orm_mode=True
+        orm_mode = True
 
 
 class Login(BaseModel):
@@ -52,7 +52,7 @@ class Login(BaseModel):
     password: str
 
     class Config():
-        orm_mode=True
+        orm_mode = True
 
 
 class Token(BaseModel):

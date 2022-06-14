@@ -34,7 +34,7 @@ get_db = database.get_db
 
 
 @router.get("/get_items", response_model=List[schemas.Product])
-def all_products(db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
+def all_products(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     FETCH ALL PRODUCTS AVAILABLE IN GROCERY
     """
@@ -44,7 +44,7 @@ def all_products(db: Session= Depends(get_db), current_user: schemas.User= Depen
 
 
 @router.post("/create_items", status_code=status.HTTP_201_CREATED)
-def add_product(request: List[schemas.ProductBase], db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
+def add_product(request: List[schemas.ProductBase], db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     ADD PRODUCTS TO SHOW IN GROCERY
     """
@@ -62,7 +62,7 @@ def add_product(request: List[schemas.ProductBase], db: Session= Depends(get_db)
 
 
 @router.put("/update_item/{item_id}", status_code=status.HTTP_200_OK)
-def update_product(item_id: int, item: schemas.ProductBase, db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
+def update_product(item_id: int, item: schemas.ProductBase, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     UPDATE PRODUCTS FOR GROCERY
     """
@@ -72,7 +72,7 @@ def update_product(item_id: int, item: schemas.ProductBase, db: Session= Depends
 
 
 @router.delete("/delete_item/{item_id}", status_code=status.HTTP_200_OK)
-def delete_product(item_id: int, db: Session= Depends(get_db), current_user: schemas.User= Depends(oauth2.get_current_user)):
+def delete_product(item_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     DELETE ITEMS NOT IN GROCERY
     """
