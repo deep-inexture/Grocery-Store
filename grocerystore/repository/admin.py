@@ -9,7 +9,9 @@ from typing import List
 
 def is_admin(email: str, db: Session):
     check_user = db.query(models.User).filter(models.User.email == email).first()
-    return getattr(check_user, 'is_admin')
+    if getattr(check_user, 'email') != 'admin@admin.in':
+        return False
+    return True
 
 
 def all_products(db: Session):
