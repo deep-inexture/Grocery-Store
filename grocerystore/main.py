@@ -1,7 +1,9 @@
 from fastapi import FastAPI
-from . import models
-from .database import engine
-from .routers import admin, authentication
+from alembic.config import Config
+from alembic.command import upgrade
+from .routers import admin, authentication, users
+from . import database
+import os
 
 # Creates an Object of FastAPI Instance as app with some Title and Description while viewing in
 # Swagger or ReadDoc mode.
@@ -11,11 +13,17 @@ app = FastAPI(
 )
 
 # Following command will create new tables if not exists in Database.
-models.Base.metadata.create_all(engine)
+# Now We are using alembic migrations.
+# models.Base.metadata.create_all(engine)
+
+
+app.state.database = database
+
 
 # Following command will call the routers and stored in different files for clean flow of project .
 app.include_router(authentication.router)
 app.include_router(admin.router)
+app.include_router(users.router)
 
 # Using following we can directly run python file instead of whole uvicorn command.
 # Don't use while of production server.

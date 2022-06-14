@@ -23,3 +23,4 @@ class User(Base):
     username = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
+    is_admin = Column(Boolean, default=False)
