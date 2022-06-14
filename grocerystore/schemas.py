@@ -32,6 +32,13 @@ class User(BaseModel):
         orm_mode=True
 
 
+class UserRegister(User):
+    confirm_password: str
+
+    class Config():
+        orm_mode=True
+
+
 class ShowUser(BaseModel):
     username: str
     email: str

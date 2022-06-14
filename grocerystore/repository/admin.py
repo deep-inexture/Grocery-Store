@@ -7,6 +7,11 @@ from typing import List
 # All Database query stuff also takes place here.
 
 
+def is_admin(email: str, db: Session):
+    check_user = db.query(models.User).filter(models.User.email == email).first()
+    return getattr(check_user, 'is_admin')
+
+
 def all_products(db: Session):
     items = db.query(models.Product).all()
     return items
@@ -23,7 +28,6 @@ def add_product(request: List[schemas.Product], db: Session):
         )
         db.add(new_item)
     db.commit()
-    db.refresh(new_item)
     return {'status': 'Done'}
 
 

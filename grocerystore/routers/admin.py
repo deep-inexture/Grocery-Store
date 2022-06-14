@@ -21,16 +21,9 @@ router = APIRouter(
 get_db = database.get_db
 
 
-# def is_admin(func):
-#     @wraps(func)
-#     def wrapper(*args, **kwargs):
-#         print('----------------------------------------------------')
-#         print(*args)
-#         print(**kwargs)
-#         return func(*args, **kwargs)
-#
-#     return wrapper
-
+# def is_admin(email):
+#     if email == 'admin@admin.in':
+#         return True
 
 # @router.get('/user/{id}', response_model=schemas.ShowUser)
 # def get_user(id: int, db: Session= Depends(get_db)):
@@ -45,7 +38,7 @@ def all_products(db: Session= Depends(get_db), current_user: schemas.User= Depen
     """
     FETCH ALL PRODUCTS AVAILABLE IN GROCERY
     """
-    if current_user.email != 'admin@admin.in':
+    if not admin.is_admin(current_user.email, db):
         raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return admin.all_products(db)
 
@@ -55,7 +48,7 @@ def add_product(request: List[schemas.ProductBase], db: Session= Depends(get_db)
     """
     ADD PRODUCTS TO SHOW IN GROCERY
     """
-    if current_user.email != 'admin@admin.in':
+    if not admin.is_admin(current_user.email, db):
         raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     # file_location = f"{ROOT_DIR}/product_image/{product_image.filename}"
     # suffix = Path(product_image.filename).suffix
@@ -73,7 +66,7 @@ def update_product(item_id: int, item: schemas.ProductBase, db: Session= Depends
     """
     UPDATE PRODUCTS FOR GROCERY
     """
-    if current_user.email != 'admin@admin.in':
+    if not admin.is_admin(current_user.email, db):
         raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return admin.update_product(item_id, db, item)
 
@@ -83,6 +76,6 @@ def delete_product(item_id: int, db: Session= Depends(get_db), current_user: sch
     """
     DELETE ITEMS NOT IN GROCERY
     """
-    if current_user.email != 'admin@admin.in':
+    if not admin.is_admin(current_user.email, db):
         raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return admin.delete_product(item_id, db)
