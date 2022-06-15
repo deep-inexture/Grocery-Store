@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 # Following File contains BaseModel for each table to make it visible in json format while building APIs.'
 # Each of them can be called as per requirements in response_model in routers.
@@ -39,9 +39,34 @@ class UserRegister(User):
         orm_mode = True
 
 
-class ShowUser(BaseModel):
+class ShowUserBase(BaseModel):
     username: str
     email: str
+
+    class Config():
+        orm_mode = True
+
+
+class ShowUser(ShowUserBase):
+    shipping_info: List[ShowUserBase] = []
+
+    class Config():
+        orm_mode = True
+
+
+class ShippingInfo(BaseModel):
+    name: str
+    phone_no: int
+    address: str
+    city: str
+    state: str
+
+    class Config():
+        orm_mode = True
+
+
+class ShippingInfoBase(ShippingInfo):
+    owner: ShowUserBase
 
     class Config():
         orm_mode = True
@@ -62,3 +87,13 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+
+class ForgotPassword(BaseModel):
+    email: str
+
+
+class ResetPassword(BaseModel):
+    token: str
+    password: str
+
