@@ -1,5 +1,6 @@
 from .database import Base
-from sqlalchemy import String, Integer, Column, Float, Boolean
+from sqlalchemy import String, Integer, Column, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 
 # This files stores schemas of tables like tableName, tableColumn, and its Datatype.
 # Main file sees into this file first for each non created table to be generated or not.
@@ -24,3 +25,29 @@ class User(Base):
     email = Column(String(255), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
     is_admin = Column(Boolean, default=False)
+
+    shipping_info = relationship('ShippingInfo', back_populates="owner")
+
+
+class ResetCode(Base):
+    __tablename__ = "reset_codes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), nullable=False, unique=True)
+    reset_code = Column(String(50), nullable=False)
+    status = Column(String(1), default=1)
+    expired_in = Column(DateTime)
+
+
+class ShippingInfo(Base):
+    __tablename__ = "users_shipping_info"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), nullable=True)
+    phone_no = Column(Integer, nullable=False)
+    address = Column(String(255), nullable=False)
+    city = Column(String(50), nullable=False)
+    state = Column(String(50), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'))
+
+    owner = relationship("User", back_populates="shipping_info")
