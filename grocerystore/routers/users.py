@@ -29,3 +29,19 @@ def search_products(item_name: Optional[str] = '', max_price: Optional[float] = 
     if not name_and_price:
         raise HTTPException(status_code=404, detail=f"No Records Found!!!")
     return name_and_price
+
+
+@router.post("/shipping_info", response_model=schemas.ShippingInfo)
+def add_shipping_info(request: schemas.ShippingInfo, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Add Shipping Info like Address and other stuff
+    """
+    return users.add_shipping_info(request, db, current_user.email)
+
+
+@router.get("/show_shipping_info", response_model=List[schemas.ShippingInfoBase])
+def show_shipping_info(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Fetch Shipping Address of Particular User
+    """
+    return users.show_shipping_info(db, current_user.email)

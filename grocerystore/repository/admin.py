@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from .. import models, schemas
 from typing import List
@@ -19,7 +19,7 @@ def all_products(db: Session):
     return items
 
 
-def add_product(request: List[schemas.Product], db: Session):
+def add_product(db: Session, request: List[schemas.ProductBase]):
     for items in request:
         new_item = models.Product(
             image_file=items.image_file,
@@ -29,6 +29,7 @@ def add_product(request: List[schemas.Product], db: Session):
             quantity=items.quantity
         )
         db.add(new_item)
+
     db.commit()
     return {'status': 'Done'}
 

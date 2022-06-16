@@ -1,13 +1,9 @@
-import shutil
-from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
-from .. import database, schemas, models, oauth2
+from .. import database, schemas, oauth2
 from typing import List
-from pathlib import Path
 import os
 from ..repository import admin
-from tempfile import NamedTemporaryFile
-from functools import wraps
 
 # This File Contains all Admin Related Routes such as ADD | UPDATE | DELETE Products and many more.
 # All validations and query gets fired in other file with same name in repository directory.
@@ -20,10 +16,6 @@ router = APIRouter(
 )
 get_db = database.get_db
 
-
-# def is_admin(email):
-#     if email == 'admin@admin.in':
-#         return True
 
 # @router.get('/user/{id}', response_model=schemas.ShowUser)
 # def get_user(id: int, db: Session= Depends(get_db)):
@@ -44,20 +36,15 @@ def all_products(db: Session = Depends(get_db), current_user: schemas.User = Dep
 
 
 @router.post("/create_items", status_code=status.HTTP_201_CREATED)
-def add_product(request: List[schemas.ProductBase], db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+def add_product(request: List[schemas.ProductBase], db: Session = Depends(get_db),
+                current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     ADD PRODUCTS TO SHOW IN GROCERY
     """
     if not admin.is_admin(current_user.email, db):
         raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
-    # file_location = f"{ROOT_DIR}/product_image/{product_image.filename}"
-    # suffix = Path(product_image.filename).suffix
-    # if suffix in ['.png', '.jpg', '.jpeg']:
-    #     with open(file_location, "wb+") as file_object:
-    #         shutil.copyfileobj(product_image.file, file_object)
-    #     print(product_image.file)
 
-    admin.add_product(request, db)
+    admin.add_product(db, request)
     return {'DB Status': 'Item Added Successfully'}
 
 
