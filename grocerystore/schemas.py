@@ -96,4 +96,3 @@ class ForgotPassword(BaseModel):
 class ResetPassword(BaseModel):
     token: str
     password: str
-

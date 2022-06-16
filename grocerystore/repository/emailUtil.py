@@ -1,8 +1,7 @@
-from fastapi_mail import FastMail, MessageSchema,ConnectionConfig
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from dotenv import load_dotenv
 import os
 from typing import List
-from starlette.responses import JSONResponse
 
 load_dotenv()
 
