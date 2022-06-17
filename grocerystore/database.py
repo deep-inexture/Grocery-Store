@@ -17,7 +17,7 @@ SessionLocal = sessionmaker(bind=engine)
 def get_db():
     """
     This Method provides variable db which has access to all models section column names.
-    Thus it passes query to database and acts as its object.
+    Thus, it passes query to database and acts as its object.
     """
     db = SessionLocal()
     try:
