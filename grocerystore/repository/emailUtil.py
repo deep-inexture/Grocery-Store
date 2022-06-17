@@ -1,8 +1,7 @@
-from fastapi_mail import FastMail, MessageSchema,ConnectionConfig
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from dotenv import load_dotenv
 import os
 from typing import List
-from starlette.responses import JSONResponse
 
 load_dotenv()
 
@@ -18,7 +17,7 @@ conf = ConnectionConfig(
 )
 
 
-def send_email(subject: str, recipient: List, message: str):
+async def send_email(subject: str, recipient: List, message: str):
     message = MessageSchema(
         subject=subject,
         recipients=recipient,
@@ -26,5 +25,5 @@ def send_email(subject: str, recipient: List, message: str):
         subtype="html"
     )
     fm = FastMail(conf)
-    fm.send_message(message)
+    await fm.send_message(message)
     return True

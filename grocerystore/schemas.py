@@ -72,6 +72,31 @@ class ShippingInfoBase(ShippingInfo):
         orm_mode = True
 
 
+class MyCart(BaseModel):
+    product_name: str
+    product_quantity: int
+    product_price: float
+    status: str
+
+    class Config():
+        orm_mode = True
+
+
+class MyCartBase(MyCart):
+    owner: ShowUserBase
+
+    class Config():
+        orm_mode = True
+
+
+class AddToCart(BaseModel):
+    item_id: int
+    item_quantity: int
+
+    class Config():
+        orm_mode = True
+
+
 class Login(BaseModel):
     username: str
     password: str
@@ -96,4 +121,3 @@ class ForgotPassword(BaseModel):
 class ResetPassword(BaseModel):
     token: str
     password: str
-

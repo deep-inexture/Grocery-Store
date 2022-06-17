@@ -17,14 +17,6 @@ router = APIRouter(
 get_db = database.get_db
 
 
-# @router.get('/user/{id}', response_model=schemas.ShowUser)
-# def get_user(id: int, db: Session= Depends(get_db)):
-#     user = db.query(models.User).filter(models.User.id == id).first()
-#     if not user:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id: {id} NOT FOUND!")
-#     return user
-
-
 @router.get("/get_items", response_model=List[schemas.Product])
 def all_products(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
