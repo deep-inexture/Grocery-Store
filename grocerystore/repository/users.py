@@ -46,7 +46,7 @@ def add_to_cart(request, db: Session, email):
         user_id=uid[0],
         product_id=stock_id,
         product_name=stock_title,
-        product_quantity=stock_quantity,
+        product_quantity=request.item_quantity,
         product_price=stock_price
     )
     db.add(cart_item)
