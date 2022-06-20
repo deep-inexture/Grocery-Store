@@ -73,10 +73,11 @@ class ShippingInfoBase(ShippingInfo):
 
 
 class MyCart(BaseModel):
+    product_id: int
     product_name: str
     product_quantity: int
     product_price: float
-    status: str
+    total: float
 
     class Config():
         orm_mode = True
