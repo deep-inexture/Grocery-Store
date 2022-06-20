@@ -46,7 +46,19 @@ def my_cart(db: Session= Depends(get_db), current_user: schemas.User = Depends(o
     """
     User can view their Cart and their Products Added to cart
     """
+    if admin.is_admin(current_user.email, db):
+        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return users.my_cart(db, current_user.email)
+
+
+@router.delete("/delete_item_from_cart/{item_id}", status_code=status.HTTP_200_OK)
+def delete_item_from_cart(item_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Delete Item from User Cart
+    """
+    if admin.is_admin(current_user.email, db):
+        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
+    return users.delete_item_from_cart(item_id, db, current_user.email)
 
 
 @router.post("/shipping_info", response_model=schemas.ShippingInfo)

@@ -63,6 +63,6 @@ class MyCart(Base):
     product_name = Column(String(255), nullable=False)
     product_quantity = Column(Integer, nullable=False)
     product_price = Column(Float, nullable=False)
-    status = Column(String(10), default="pending")
+    total = Column(Float, nullable=True)
 
     owner = relationship("User", back_populates="my_cart")

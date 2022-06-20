@@ -41,13 +41,27 @@ def add_to_cart(request, db: Session, email):
     if request.item_quantity > getattr(pid, "quantity"):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Stock UnAvailable! {stock_quantity} Stocks left.")
 
+    """Check Product Already Exists in Cart or not"""
+    my_products = db.query(models.MyCart).filter(models.MyCart.user_id == uid[0]).all()
+    for i in my_products:
+        total_product_quantity = (getattr(i, "product_quantity") + request.item_quantity)
+        if request.item_id == getattr(i, "product_id"):
+            if total_product_quantity > getattr(pid, "quantity"):
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Out of Stock")
+            else:
+                i.product_quantity = (getattr(i, "product_quantity") + request.item_quantity)
+                i.total = (getattr(i, "total") + (stock_price*request.item_quantity))
+                db.commit()
+                return {"Status": "Item Updated Successfully..."}
+
     """Add Product Details to MyCart."""
     cart_item = models.MyCart(
         user_id=uid[0],
         product_id=stock_id,
         product_name=stock_title,
         product_quantity=request.item_quantity,
-        product_price=stock_price
+        product_price=stock_price,
+        total=stock_price*request.item_quantity
     )
     db.add(cart_item)
     db.commit()
@@ -80,3 +94,14 @@ def add_shipping_info(request, db: Session, email):
 def show_shipping_info(db, email):
     info = db.query(models.ShippingInfo).filter(and_(models.User.email == email, models.User.id == models.ShippingInfo.user_id)).all()
     return info
+
+
+def delete_item_from_cart(item_id: int, db: Session, email):
+    uid = db.query(models.User.id).filter(models.User.email == email).first()
+    delete_item = db.query(models.MyCart).filter(and_(models.MyCart.user_id == uid[0]), models.MyCart.product_id == item_id).first()
+    if not delete_item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item Does Not Exists!!!")
+    item_to_be_deleted = getattr(delete_item, "product_name")
+    db.delete(delete_item)
+    db.commit()
+    return {f"Product {item_to_be_deleted}": "Deleted Successfully"}
