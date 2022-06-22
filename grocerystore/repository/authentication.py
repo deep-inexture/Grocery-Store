@@ -9,6 +9,7 @@ import uuid
 
 
 def register(request, db: Session):
+    """Function provides validation and authentication before registering for endpoint."""
     user = db.query(models.User).filter(models.User.email == request.email).first()
     if user:
         raise HTTPException(status_code=409, detail=f"{request.email} Already Exists. Please Try Another Email-ID")
@@ -29,6 +30,7 @@ def register(request, db: Session):
 
 
 def login(request, db: Session):
+    """Check Validation and password along with token to let access to other endpoints."""
     user = db.query(models.User).filter(models.User.email == request.username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Invalid Credentials")
@@ -36,10 +38,19 @@ def login(request, db: Session):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Incorrect Password")
 
     access_token = token.create_access_token(data={"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = token.create_refresh_token(data={"sub": user.email})
+    return {"access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer"}
+
+
+def new_access_token(email):
+    access_token = token.create_access_token(data={"sub": email})
+    return {'new_access_token': access_token}
 
 
 def forgot_password(request, db: Session):
+    """Function request email of user to provide token for reset password access link."""
     user = db.query(models.User).filter(models.User.email == request.email).first()
     existing_user = db.query(models.ResetCode).filter(models.ResetCode.email == request.email).first()
     if not user:
@@ -80,6 +91,7 @@ def forgot_password(request, db: Session):
 
 
 def reset_password(request, db: Session):
+    """Request for new token and new password validations before reset the old password with new."""
     user = db.query(models.ResetCode).filter(models.ResetCode.reset_code == request.token).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Incorrect Token!!!")

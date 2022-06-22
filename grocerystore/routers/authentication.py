@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
-from fastapi.security import OAuth2PasswordRequestForm
-from .. import schemas, database
+from .. import schemas, database, oauth2
 from ..repository import authentication
 from sqlalchemy.orm import Session
 
@@ -23,12 +22,18 @@ def registration(request: schemas.UserRegister, db: Session = Depends(get_db)):
 
 
 @router.post('/login')
-def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(request: schemas.Login, db: Session = Depends(get_db)):
     """
     Login Process for both Admin and User.
     Call Login function in repository directory to validate credentials and provide access token.
     """
     return authentication.login(request, db)
+
+
+@router.get('/new_access_token')
+def new_access_token(current_user: schemas.User = Depends(oauth2.get_current_user_access_token)):
+    """Router to Create New Access Token by taking Refresh Token"""
+    return authentication.new_access_token(current_user.email)
 
 
 @router.post('/forgot_password')

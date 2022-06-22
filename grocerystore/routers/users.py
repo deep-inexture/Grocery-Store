@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from .. import database, schemas, oauth2
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List
 from ..repository import users, admin
+from fastapi_pagination import Page, add_pagination, paginate, LimitOffsetPage
 
 router = APIRouter(
     tags=["User"],
@@ -12,20 +13,22 @@ router = APIRouter(
 get_db = database.get_db
 
 
-@router.get("/view_products", response_model=List[schemas.Product])
+@router.get("/view_products", response_model=Page[schemas.Product])
+@router.get("/view_products/limit-offset", response_model=LimitOffsetPage[schemas.Product])
 def view_products(db: Session = Depends(get_db)):
     """
     Any User has access to view all the products available in grocery db.
     """
-    return users.view_products(db)
+    return paginate(users.view_products(db))
+add_pagination(router)
 
 
-@router.get("/search_products", response_model=List[schemas.Product])
-def search_products(item_name: Optional[str] = '', max_price: Optional[float] = 1000, min_price: Optional[float] = 0, db: Session = Depends(get_db)):
+@router.post("/search_products", response_model=List[schemas.Product])
+def search_products(request: schemas.SearchProduct, db: Session = Depends(get_db)):
     """
     Search Filters to make easy access to required Products.
     """
-    name_and_price = users.search_by_name_and_price(item_name, max_price, min_price, db)
+    name_and_price = users.search_by_name_and_price(request, db)
     if not name_and_price:
         raise HTTPException(status_code=404, detail=f"No Records Found!!!")
     return name_and_price
@@ -42,7 +45,7 @@ def add_to_cart(request: schemas.AddToCart, db: Session = Depends(get_db), curre
 
 
 @router.get("/view_my_cart", response_model=List[schemas.MyCartBase])
-def my_cart(db: Session= Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+def my_cart(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     User can view their Cart and their Products Added to cart
     """
@@ -79,3 +82,13 @@ def show_shipping_info(db: Session = Depends(get_db), current_user: schemas.User
     if admin.is_admin(current_user.email, db):
         raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return users.show_shipping_info(db, current_user.email)
+
+
+@router.post("/order_payment")
+def order_payment_page(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Get the Payment Link to pay for your Order
+    """
+    if admin.is_admin(current_user.email, db):
+        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
+    return users.order_payment(db, current_user.email)
