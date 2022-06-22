@@ -12,6 +12,8 @@ load_dotenv()
 SECRET_KEY = os.environ.get('SECRET_KEY')
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
+JWT_REFRESH_SECRET_KEY = os.environ.get('JWT_REFRESH_SECRET_KEY')
 
 
 def create_access_token(data: dict):
@@ -22,6 +24,14 @@ def create_access_token(data: dict):
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def create_refresh_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
@@ -36,6 +46,23 @@ def verify_token(token: str, credentials_exception):
         if not email:
             raise credentials_exception
         token_data = schemas.TokenData(email=email)
+
+        return token_data
+    except JWTError:
+        raise credentials_exception
+
+
+def verify_refresh_token(token: str, credentials_exception):
+    """
+    Once User apply for refresh token it automatically validates and provides new Access token.
+    """
+    try:
+        payload = jwt.decode(token, JWT_REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if not email:
+            raise credentials_exception
+        token_data = schemas.TokenData(email=email)
+
         return token_data
     except JWTError:
         raise credentials_exception

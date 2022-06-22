@@ -8,6 +8,7 @@ from typing import List
 
 
 def is_admin(email: str, db: Session):
+    """Check isAdmin feature so that no user can access admin use cases."""
     check_user = db.query(models.User).filter(models.User.email == email).first()
     if getattr(check_user, 'email') != 'admin@admin.in':
         return False
@@ -15,11 +16,12 @@ def is_admin(email: str, db: Session):
 
 
 def all_products(db: Session):
-    items = db.query(models.Product).all()
-    return items
+    """Return all products details to verify after adding/updating."""
+    return db.query(models.Product).all()
 
 
 def add_product(db: Session, request: List[schemas.ProductBase]):
+    """Add products to grocery via requested details."""
     for items in request:
         new_item = models.Product(
             image_file=items.image_file,
@@ -35,6 +37,7 @@ def add_product(db: Session, request: List[schemas.ProductBase]):
 
 
 def update_product(item_id: int, db: Session, item: schemas.ProductBase):
+    """Update items and their details as per requirements."""
     check_item_id = db.query(models.Product).filter(models.Product.id == item_id).first()
     if not check_item_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Item with ID: ({item_id}) NOT FOUND!!!")
@@ -64,6 +67,7 @@ def update_product(item_id: int, db: Session, item: schemas.ProductBase):
 
 
 def delete_product(item_id: int, db: Session):
+    """Delete products not needed in grocery with help of its id."""
     delete_item = db.query(models.Product).filter(models.Product.id == item_id).first()
     if not delete_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item Does Not Exists!!!")
@@ -75,5 +79,5 @@ def delete_product(item_id: int, db: Session):
 
 
 def fetch_data(item_id: int, db: Session):
-    fetch_item = db.query(models.Product).where(models.Product.id == item_id).first()
-    return fetch_item
+    """Common function to fetch data of products for other functions above."""
+    return db.query(models.Product).where(models.Product.id == item_id).first()

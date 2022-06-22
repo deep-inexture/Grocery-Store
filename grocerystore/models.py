@@ -7,6 +7,7 @@ from sqlalchemy.orm import relationship
 
 
 class Product(Base):
+    """This table contains elements required to identify different products and its stocks."""
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -18,6 +19,7 @@ class Product(Base):
 
 
 class User(Base):
+    """This Table has user details for authentication and access purpose."""
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -28,9 +30,11 @@ class User(Base):
 
     shipping_info = relationship('ShippingInfo', back_populates="owner")
     my_cart = relationship('MyCart', back_populates="owner")
+    order_details = relationship('OrderDetails', back_populates="owner")
 
 
 class ResetCode(Base):
+    """This table provides temporary token to reset user password if they forgot."""
     __tablename__ = "reset_codes"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -41,6 +45,7 @@ class ResetCode(Base):
 
 
 class ShippingInfo(Base):
+    """This table provides address and contact details of user for shipment."""
     __tablename__ = "users_shipping_info"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -55,6 +60,7 @@ class ShippingInfo(Base):
 
 
 class MyCart(Base):
+    """This table has user products info that has been added to cart before payment and shipment"""
     __tablename__ = "my_cart"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -66,3 +72,17 @@ class MyCart(Base):
     total = Column(Float, nullable=True)
 
     owner = relationship("User", back_populates="my_cart")
+
+
+class OrderDetails(Base):
+    """This Table has permanent records/ invoice details of user after successful process of payment."""
+    __tablename__ = "order_details"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    shipping_id = Column(Integer, ForeignKey('users_shipping_info.id'))
+    description = Column(String(255), nullable=False)
+    total_amount = Column(Float, nullable=False)
+    payment_status = Column(String(50), default="pending")
+
+    owner = relationship("User", back_populates="order_details")
