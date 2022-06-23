@@ -1,5 +1,5 @@
 import datetime
-from . import emailUtil, messages
+from . import emailUtil, messages, emailFormat
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from .. import models, token
@@ -20,11 +20,21 @@ def register(request, db: Session):
     if not re.fullmatch(r'^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$', request.password):
         raise HTTPException(status_code=401, detail=messages.PASSWORD_FORMAT_401)
 
-    new_user = models.User(username=request.username, email=request.email, password=Hash.bcrypt(request.password))
-
+    new_user = models.User(
+        username=request.username,
+        email=request.email,
+        password=Hash.bcrypt(request.password)
+    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    user_id = db.query(models.User.id).filter(models.User.email == request.email).first()
+    user_wallet = models.MyWallet(user_id=user_id[0])
+    db.add(user_wallet)
+    db.commit()
+    db.refresh(user_wallet)
+
     return new_user
 
 
@@ -64,34 +74,17 @@ def forgot_password(request, db: Session):
     db.commit()
     db.refresh(new_code)
 
+    """Formatting Email"""
+    subject, recipient, message = emailFormat.forgotPasswordFormat(request.email, reset_code)
+
     """Sending Email to User"""
-    subject = "Hello User"
-    recipient = [request.email]
-    message = """
-    <!DOCTYPE html>
-    <html>
-    <title>Reset Password</title>
-    <body>
-    <h1>Hello, {0:}</h1>
-    <p>Password Reset Request has been received by Someone.</p>
-    <br>
-    <p>Your Token to Reset Password :{1}</p>
-    <br>
-    <p>If you did not requested, You can ignore this mail!<p>
-    </body>
-    </html> 
-    """.format(request.email, reset_code)
-
     emailUtil.send_email(subject, recipient, message)
-    return {
-        "reset_code": reset_code,
-        "message": "We have send an Email, to reset your Password."
-    }
+    return {"message": "We have send an Email, to reset your Password."}
 
 
-def reset_password(request, db: Session):
+def reset_password(reset_token, request, db: Session):
     """Request for new token and new password validations before reset the old password with new."""
-    user = db.query(models.ResetCode).filter(models.ResetCode.reset_code == request.token).first()
+    user = db.query(models.ResetCode).filter(models.ResetCode.reset_code == reset_token).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.INCORRECT_TOKEN_404)
     if request.password != request.confirm_password:

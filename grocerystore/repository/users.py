@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from .. import models
-from . import admin, messages
+from . import admin, messages, emailFormat, emailUtil
 from sqlalchemy import and_, func, desc
 import razorpay
 
@@ -183,7 +183,13 @@ def order_payment(db, email):
     db.commit()
     db.refresh(new_order)
 
-    return invoice
+    """Formatting Email"""
+    subject, recipient, message = emailFormat.invoiceFormat(email, invoice)
+
+    """Sending Email to User"""
+    emailUtil.send_email(subject, recipient, message)
+
+    return {"message": "Please Find your Invoice on your email."}
 
 
 def order_history(db, email):
@@ -219,3 +225,14 @@ def cancel_order(item_id: int, db, email):
         "Amount": f"Amount of Rs.{getattr(my_wallet, 'acc_balance')} has been Refunded",
         "message": f"Amount will be Refunded to your Wallet. 10% Cancellation Charges are applied."
     }
+
+
+def view_balance(db, email):
+    """Fetch the Account Balance in Wallet."""
+    if admin.is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
+    user_id = db.query(models.User.id).filter(models.User.email == email).first()
+    balance = db.query(models.MyWallet).filter(models.MyWallet.user_id == user_id[0]).first()
+
+    return balance

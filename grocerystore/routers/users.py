@@ -94,4 +94,12 @@ def cancel_order(item_id: int, db: Session = Depends(get_db), current_user: sche
     return users.cancel_order(item_id, db, current_user.email)
 
 
+@router.get('/view_balance', response_model=schemas.WalletBalance)
+def view_balance(db: Session= Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Fetch the User Wallet Balance.
+    """
+    return users.view_balance(db, current_user.email)
+
+
 add_pagination(router)

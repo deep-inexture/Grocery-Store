@@ -42,7 +42,7 @@ def forgot_password(request: schemas.ForgotPassword, db: Session = Depends(get_d
     return authentication.forgot_password(request, db)
 
 
-@router.post('/reset_password')
-def reset_password(request: schemas.ResetPassword, db: Session = Depends(get_db)):
+@router.post('/reset_password/{reset_token}')
+def reset_password(reset_token: str, request: schemas.ResetPassword, db: Session = Depends(get_db)):
     """Reset Password using token Sent via Mail"""
-    return authentication.reset_password(request, db)
+    return authentication.reset_password(reset_token, request, db)

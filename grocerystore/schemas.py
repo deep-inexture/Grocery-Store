@@ -144,6 +144,16 @@ class OrderDetails(BaseModel):
         orm_mode = True
 
 
+class WalletBalance(BaseModel):
+    """User UseCase: User can view their Wallet Balance."""
+    user_id: int
+    acc_balance: float
+    owner: ShowUserBase
+
+    class Config:
+        orm_mode = True
+
+
 class Token(BaseModel):
     """User/Admin UseCase: Create Token and let user get their access_token for verification."""
     access_token: str
@@ -162,5 +172,5 @@ class ForgotPassword(BaseModel):
 
 class ResetPassword(BaseModel):
     """User UseCase: User will get again new token to recover password valid for some time."""
-    token: str
     password: str
+    confirm_password: str
