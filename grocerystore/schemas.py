@@ -13,7 +13,7 @@ class ProductBase(BaseModel):
     price: float = 0
     quantity: int = 0
 
-    class Config():
+    class Conf:
         orm_mode = True
 
 
@@ -21,7 +21,7 @@ class Product(ProductBase):
     """Admin UseCase: id field inheriting from above class so that users can view and act accordingly"""
     id: int
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -31,7 +31,7 @@ class User(BaseModel):
     email: str
     password: str
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -40,7 +40,7 @@ class UserRegister(User):
        via inheriting above class."""
     confirm_password: str
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -50,7 +50,7 @@ class ShowUserBase(BaseModel):
     username: str
     email: str
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -58,7 +58,7 @@ class ShowUser(ShowUserBase):
     """User UseCase: Schema that shows Shipping Info details including user details from Above."""
     shipping_info: List[ShowUserBase] = []
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -70,7 +70,7 @@ class ShippingInfo(BaseModel):
     city: str
     state: str
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -78,7 +78,7 @@ class ShippingInfoBase(ShippingInfo):
     """User UseCase: Show owner details while accessing address details"""
     owner: ShowUserBase
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -90,7 +90,7 @@ class MyCart(BaseModel):
     product_price: float
     total: float
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -98,7 +98,7 @@ class MyCartBase(MyCart):
     """User UseCase: Let user view their products with their own details """
     owner: ShowUserBase
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -107,7 +107,7 @@ class AddToCart(BaseModel):
     item_id: int
     item_quantity: int
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -117,7 +117,7 @@ class SearchProduct(BaseModel):
     max_price: Optional[float] = 1000
     min_price: Optional[float] = 0
 
-    class Config():
+    class Config:
         orm_mode = True
 
 
@@ -126,7 +126,31 @@ class Login(BaseModel):
     username: str
     password: str
 
-    class Config():
+    class Config:
+        orm_mode = True
+
+
+class OrderDetails(BaseModel):
+    """Admin UseCase: View all order details in the records."""
+    id: int
+    user_id: int
+    shipping_id: int
+    description: str
+    total_amount: float
+    payment_status: str
+    owner: ShowUserBase
+
+    class Config:
+        orm_mode = True
+
+
+class WalletBalance(BaseModel):
+    """User UseCase: User can view their Wallet Balance."""
+    user_id: int
+    acc_balance: float
+    owner: ShowUserBase
+
+    class Config:
         orm_mode = True
 
 
@@ -148,5 +172,5 @@ class ForgotPassword(BaseModel):
 
 class ResetPassword(BaseModel):
     """User UseCase: User will get again new token to recover password valid for some time."""
-    token: str
     password: str
+    confirm_password: str

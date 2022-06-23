@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from .. import database, schemas, oauth2
 from sqlalchemy.orm import Session
 from typing import List
-from ..repository import users, admin
+from ..repository import users
 from fastapi_pagination import Page, add_pagination, paginate, LimitOffsetPage
 
 router = APIRouter(
@@ -20,7 +20,6 @@ def view_products(db: Session = Depends(get_db)):
     Any User has access to view all the products available in grocery db.
     """
     return paginate(users.view_products(db))
-add_pagination(router)
 
 
 @router.post("/search_products", response_model=List[schemas.Product])
@@ -28,10 +27,7 @@ def search_products(request: schemas.SearchProduct, db: Session = Depends(get_db
     """
     Search Filters to make easy access to required Products.
     """
-    name_and_price = users.search_by_name_and_price(request, db)
-    if not name_and_price:
-        raise HTTPException(status_code=404, detail=f"No Records Found!!!")
-    return name_and_price
+    return users.search_by_name_and_price(request, db)
 
 
 @router.post("/add_to_cart", status_code=status.HTTP_200_OK)
@@ -39,8 +35,6 @@ def add_to_cart(request: schemas.AddToCart, db: Session = Depends(get_db), curre
     """
     Add your favorite Item to your Cart by entering item id from view products/ search products.
     """
-    if admin.is_admin(current_user.email, db):
-        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return users.add_to_cart(request, db, current_user.email)
 
 
@@ -49,8 +43,6 @@ def my_cart(db: Session = Depends(get_db), current_user: schemas.User = Depends(
     """
     User can view their Cart and their Products Added to cart
     """
-    if admin.is_admin(current_user.email, db):
-        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return users.my_cart(db, current_user.email)
 
 
@@ -59,8 +51,6 @@ def delete_item_from_cart(item_id: int, db: Session = Depends(get_db), current_u
     """
     Delete Item from User Cart
     """
-    if admin.is_admin(current_user.email, db):
-        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return users.delete_item_from_cart(item_id, db, current_user.email)
 
 
@@ -69,8 +59,6 @@ def add_shipping_info(request: schemas.ShippingInfo, db: Session = Depends(get_d
     """
     Add Shipping Info like Address and other stuff
     """
-    if admin.is_admin(current_user.email, db):
-        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return users.add_shipping_info(request, db, current_user.email)
 
 
@@ -79,8 +67,6 @@ def show_shipping_info(db: Session = Depends(get_db), current_user: schemas.User
     """
     Fetch Shipping Address of Particular User
     """
-    if admin.is_admin(current_user.email, db):
-        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return users.show_shipping_info(db, current_user.email)
 
 
@@ -89,6 +75,31 @@ def order_payment_page(db: Session = Depends(get_db), current_user: schemas.User
     """
     Get the Payment Link to pay for your Order
     """
-    if admin.is_admin(current_user.email, db):
-        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return users.order_payment(db, current_user.email)
+
+
+@router.get("/order_history")
+def order_history(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Show User their Last Order History.
+    """
+    return users.order_history(db, current_user.email)
+
+
+@router.delete('/cancel_order/{item_id}')
+def cancel_order(item_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Fetch the item_id from User to cancel the order and refund amount to Wallet.
+    """
+    return users.cancel_order(item_id, db, current_user.email)
+
+
+@router.get('/view_balance', response_model=schemas.WalletBalance)
+def view_balance(db: Session= Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Fetch the User Wallet Balance.
+    """
+    return users.view_balance(db, current_user.email)
+
+
+add_pagination(router)

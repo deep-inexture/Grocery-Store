@@ -31,6 +31,7 @@ class User(Base):
     shipping_info = relationship('ShippingInfo', back_populates="owner")
     my_cart = relationship('MyCart', back_populates="owner")
     order_details = relationship('OrderDetails', back_populates="owner")
+    my_wallet = relationship('MyWallet', back_populates="owner")
 
 
 class ResetCode(Base):
@@ -86,3 +87,14 @@ class OrderDetails(Base):
     payment_status = Column(String(50), default="pending")
 
     owner = relationship("User", back_populates="order_details")
+
+
+class MyWallet(Base):
+    """This Table Makes Record of Users Wallet Balance. """
+    __tablename__ = "my_wallet"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    acc_balance = Column(Float, default=0)
+
+    owner = relationship("User", back_populates="my_wallet")
