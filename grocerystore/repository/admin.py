@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from .. import models, schemas
+from . import messages
 from typing import List
 
 # This File does all validations related stuff to maintain routers to only route and keep file clean.
@@ -20,8 +21,11 @@ def all_products(db: Session):
     return db.query(models.Product).all()
 
 
-def add_product(db: Session, request: List[schemas.ProductBase]):
+def add_product(db: Session, request: List[schemas.ProductBase], email):
     """Add products to grocery via requested details."""
+    if not is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
     for items in request:
         new_item = models.Product(
             image_file=items.image_file,
@@ -36,11 +40,14 @@ def add_product(db: Session, request: List[schemas.ProductBase]):
     return {'status': 'Done'}
 
 
-def update_product(item_id: int, db: Session, item: schemas.ProductBase):
+def update_product(item_id: int, db: Session, item: schemas.ProductBase, email):
     """Update items and their details as per requirements."""
+    if not is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
     check_item_id = db.query(models.Product).filter(models.Product.id == item_id).first()
     if not check_item_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Item with ID: ({item_id}) NOT FOUND!!!")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.Product_Not_Found_404(item_id))
 
     items_found = fetch_data(item_id, db)
     image_file = getattr(items_found, 'image_file')
@@ -50,7 +57,7 @@ def update_product(item_id: int, db: Session, item: schemas.ProductBase):
     quantity = getattr(items_found, 'quantity')
 
     if image_file == item.image_file and title == item.title and description == item.description and price == item.price and quantity == item.quantity:
-        raise HTTPException(status_code=302, detail=f"No Change Detected!")
+        raise HTTPException(status_code=302, detail=messages.NO_CHANGES_302)
 
     check_item_id.image_file = item.image_file
     check_item_id.title = item.title
@@ -66,16 +73,27 @@ def update_product(item_id: int, db: Session, item: schemas.ProductBase):
             f"Product Quantity =    {quantity}": f"changed to {check_item_id.quantity}"}
 
 
-def delete_product(item_id: int, db: Session):
+def delete_product(item_id: int, db: Session, email):
     """Delete products not needed in grocery with help of its id."""
+    if not is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
     delete_item = db.query(models.Product).filter(models.Product.id == item_id).first()
     if not delete_item:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item Does Not Exists!!!")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.Product_Not_Found_404(item_id))
     items_found = fetch_data(item_id, db)
     title = getattr(items_found, 'title')
     db.delete(delete_item)
     db.commit()
     return {f"Product {title}": "Deleted Successfully"}
+
+
+def view_orders(db: Session, email):
+    """View All Orders Details of User and status of Orders"""
+    if not is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
+    return db.query(models.OrderDetails).all()
 
 
 def fetch_data(item_id: int, db: Session):
