@@ -1,5 +1,5 @@
 import datetime
-from . import emailUtil
+from . import emailUtil, messages
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from .. import models, token
@@ -12,14 +12,13 @@ def register(request, db: Session):
     """Function provides validation and authentication before registering for endpoint."""
     user = db.query(models.User).filter(models.User.email == request.email).first()
     if user:
-        raise HTTPException(status_code=409, detail=f"{request.email} Already Exists. Please Try Another Email-ID")
+        raise HTTPException(status_code=409, detail=messages.Email_exists_409(request.email))
     if not re.fullmatch(r"^[a-z\d]+[\._]?[a-z\d]+[@]\w+[.]\w{2,3}$", request.email):
-        raise HTTPException(status_code=401, detail=f"Invalid Email-ID Format!!!")
+        raise HTTPException(status_code=401, detail=messages.INVALID_EMAIL_401)
     if request.password != request.confirm_password:
-        raise HTTPException(status_code=401, detail=f"Password does not Match! Please Try Again!!!")
+        raise HTTPException(status_code=401, detail=messages.PASSWORD_MISMATCH_401)
     if not re.fullmatch(r'^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$', request.password):
-        raise HTTPException(status_code=401,
-                            detail="Password Must be 8 characters Long Password. Must contain at-least 1 Uppercase, 1 lowercase, and 1 special character.")
+        raise HTTPException(status_code=401, detail=messages.PASSWORD_FORMAT_401)
 
     new_user = models.User(username=request.username, email=request.email, password=Hash.bcrypt(request.password))
 
@@ -33,9 +32,9 @@ def login(request, db: Session):
     """Check Validation and password along with token to let access to other endpoints."""
     user = db.query(models.User).filter(models.User.email == request.username).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Invalid Credentials")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.INCORRECT_CREDENTIALS_404)
     if not Hash.verify(user.password, request.password):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Incorrect Password")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.INCORRECT_PASSWORD_404)
 
     access_token = token.create_access_token(data={"sub": user.email})
     refresh_token = token.create_refresh_token(data={"sub": user.email})
@@ -54,9 +53,9 @@ def forgot_password(request, db: Session):
     user = db.query(models.User).filter(models.User.email == request.email).first()
     existing_user = db.query(models.ResetCode).filter(models.ResetCode.email == request.email).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User Not Found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.USER_NOT_FOUND)
     if existing_user:
-        raise HTTPException(status_code=409, detail=f"Reset Token Already Sent!")
+        raise HTTPException(status_code=409, detail=messages.TOKEN_SENT)
 
     """Create Reset Token and save in Database"""
     reset_code = str(uuid.uuid1())
@@ -94,12 +93,11 @@ def reset_password(request, db: Session):
     """Request for new token and new password validations before reset the old password with new."""
     user = db.query(models.ResetCode).filter(models.ResetCode.reset_code == request.token).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Incorrect Token!!!")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.INCORRECT_TOKEN_404)
     if request.password != request.confirm_password:
-        raise HTTPException(status_code=401, detail=f"Password does not Match! Please Try Again!!!")
+        raise HTTPException(status_code=401, detail=messages.PASSWORD_MISMATCH_401)
     if not re.fullmatch(r'^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$', request.password):
-        raise HTTPException(status_code=401,
-                            detail="Password Must be 8 characters Long Password. Must contain at-least 1 Uppercase, 1 lowercase, and 1 special character.")
+        raise HTTPException(status_code=401, detail=messages.PASSWORD_FORMAT_401)
 
     email = getattr(user, 'email')
 

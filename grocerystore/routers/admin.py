@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from .. import database, schemas, oauth2
 from typing import List
@@ -22,8 +22,6 @@ def all_products(db: Session = Depends(get_db), current_user: schemas.User = Dep
     """
     FETCH ALL PRODUCTS AVAILABLE IN GROCERY
     """
-    if not admin.is_admin(current_user.email, db):
-        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
     return admin.all_products(db)
 
 
@@ -33,10 +31,7 @@ def add_product(request: List[schemas.ProductBase], db: Session = Depends(get_db
     """
     ADD PRODUCTS TO SHOW IN GROCERY
     """
-    if not admin.is_admin(current_user.email, db):
-        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
-
-    admin.add_product(db, request)
+    admin.add_product(db, request, current_user.email)
     return {'DB Status': 'Item Added Successfully'}
 
 
@@ -45,9 +40,7 @@ def update_product(item_id: int, item: schemas.ProductBase, db: Session = Depend
     """
     UPDATE PRODUCTS FOR GROCERY
     """
-    if not admin.is_admin(current_user.email, db):
-        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
-    return admin.update_product(item_id, db, item)
+    return admin.update_product(item_id, db, item, current_user.email)
 
 
 @router.delete("/delete_item/{item_id}", status_code=status.HTTP_200_OK)
@@ -55,6 +48,12 @@ def delete_product(item_id: int, db: Session = Depends(get_db), current_user: sc
     """
     DELETE ITEMS NOT IN GROCERY
     """
-    if not admin.is_admin(current_user.email, db):
-        raise HTTPException(status_code=401, detail=f"You are not Authorized to view this Page!")
-    return admin.delete_product(item_id, db)
+    return admin.delete_product(item_id, db, current_user.email)
+
+
+@router.get("/view_orders", summary="View all Order Details by each User", response_model=List[schemas.OrderDetails])
+def view_orders(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    FETCH ALL ORDERS PLACED BY USER AND CHECK ORDER STATUS
+    """
+    return admin.view_orders(db, current_user.email)
