@@ -4,8 +4,10 @@ from . import schemas
 from dotenv import load_dotenv
 import os
 
-# Following file generates Token after each correct Authentication and need to re-login once 30 min
-# Expiry time is over.It is connected to oauth2 file where User gets stored as session variable.
+"""
+Following file generates Token after each correct Authentication and need to re-login once 30 min
+Expiry time is over.It is connected to oauth2 file where User gets stored as session variable.
+"""
 
 load_dotenv()
 
@@ -28,6 +30,9 @@ def create_access_token(data: dict):
 
 
 def create_refresh_token(data: dict):
+    """
+    Re-Create Access Token from the Refresh Token in data dictionary.
+    """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})

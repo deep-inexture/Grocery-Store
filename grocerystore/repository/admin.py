@@ -16,8 +16,11 @@ def is_admin(email: str, db: Session):
     return True
 
 
-def all_products(db: Session):
+def all_products(db: Session, email):
     """Return all products details to verify after adding/updating."""
+    if not is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
     return db.query(models.Product).all()
 
 

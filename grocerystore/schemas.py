@@ -1,8 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional, List
 
-# Following File contains BaseModel for each table to make it visible in json format while building APIs.'
-# Each of them can be called as per requirements in response_model in routers.
+"""
+Following File contains BaseModel for each table to make it visible in json format while building APIs.'
+Each of them can be called as per requirements in response_model in routers.
+"""
 
 
 class ProductBase(BaseModel):
@@ -45,8 +47,10 @@ class UserRegister(User):
 
 
 class ShowUserBase(BaseModel):
-    """User UseCase: Common Schema so that it can be viewed while accessing Foreign Key elements
-        and values"""
+    """
+    User UseCase: Common Schema so that it can be viewed while accessing Foreign Key elements
+    and values
+    """
     username: str
     email: str
 

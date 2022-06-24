@@ -14,7 +14,7 @@ def send_email(subject, to, text):
         MAIL_PORT = os.environ.get('MAIL_PORT')
         MAIL_SERVER = os.environ.get('MAIL_SERVER')
 
-        # Defining The Message
+        """Defining The Message"""
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
         msg["From"] = MAIL_USERNAME
@@ -24,11 +24,11 @@ def send_email(subject, to, text):
         msg.attach(part)
 
         context = ssl.create_default_context()
-        # Create your SMTP session
+        """Create your SMTP session"""
         with smtplib.SMTP_SSL(MAIL_SERVER, MAIL_PORT, context=context) as server:
             # User Authentication
             server.login(MAIL_USERNAME, MAIL_PASSWORD)
-            # Sending the Email
+            """Sending the Email"""
             server.sendmail(
                 MAIL_USERNAME, to, msg.as_string()
             )
