@@ -25,18 +25,18 @@ def invoiceFormat(email, invoice):
         <title>Invoice</title>
         <body>
         <h3>Hello, {0:}</h3>
-        ********************************<br>
+        *************************************<br>
         INVOICE<br>
-        ********************************<br>
+        *************************************<br>
         <p>ID: {1}<p>
         <p>Amount: {2}</p>
         <p>Status: {3}</p>
         <p>{4}</p>
-        ********************************<br>
+        *************************************<br>
         
         Regards,<br> 
         Grocery Store
         </body>
         </html>
-        """.format(email, invoice['id'], (invoice['amount']/100), invoice['status'], invoice['notes'])
+        """.format(email, invoice['id'], (invoice['amount']/100), invoice['status'], invoice['notes'][0])
     return subject, recipient, message

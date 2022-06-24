@@ -22,7 +22,7 @@ def all_products(db: Session = Depends(get_db), current_user: schemas.User = Dep
     """
     FETCH ALL PRODUCTS AVAILABLE IN GROCERY
     """
-    return admin.all_products(db)
+    return admin.all_products(db, current_user.email)
 
 
 @router.post("/create_items", status_code=status.HTTP_201_CREATED)
