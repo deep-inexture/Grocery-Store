@@ -54,6 +54,7 @@ def login(request, db: Session):
 
 
 def new_access_token(email):
+    """Create New Access Token from Refresh Token and replace with Access Token"""
     access_token = token.create_access_token(data={"sub": email})
     return {'new_access_token': access_token}
 

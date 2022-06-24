@@ -2,13 +2,13 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from .. import models
 from . import admin, messages, emailFormat, emailUtil
-from sqlalchemy import and_, func, desc
+from sqlalchemy import and_, func, desc, asc
 import razorpay
 
 
 def view_products(db: Session):
     """Return all products available in grocery with all its details"""
-    return db.query(models.Product).all()
+    return db.query(models.Product).order_by(asc(models.Product.id)).all()
 
 
 def search_by_name(name: str, db: Session):
