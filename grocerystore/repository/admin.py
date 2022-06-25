@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from . import messages
 from typing import List
+import datetime
 
 # This File does all validations related stuff to maintain routers to only route and keep file clean.
 # All Database query stuff also takes place here.
@@ -97,6 +98,33 @@ def view_orders(db: Session, email):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
     return db.query(models.OrderDetails).all()
+
+
+def discount_coupon(db: Session, request: List[schemas.DiscountCoupon], email):
+    """Add Discount Coupon and its records"""
+    if not is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
+    for coupon in request:
+        if coupon.valid_till <= datetime.date.today().strftime("%Y-%m-%d"):
+            raise HTTPException(status_code=401, detail=messages.INVALID_DATE_401)
+        new_coupon = models.DiscountCoupon(
+            coupon_code=coupon.coupon_code,
+            discount_percentage=coupon.discount_percentage,
+            valid_till=coupon.valid_till
+        )
+        db.add(new_coupon)
+
+    db.commit()
+    return {'status': 'Coupons Added Successfully'}
+
+
+def show_discount_coupon(db: Session, email):
+    """Return all discount coupon details ."""
+    if not is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
+    return db.query(models.DiscountCoupon).all()
 
 
 def fetch_data(item_id: int, db: Session):

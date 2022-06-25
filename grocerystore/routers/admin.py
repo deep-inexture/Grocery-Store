@@ -57,3 +57,20 @@ def view_orders(db: Session = Depends(get_db), current_user: schemas.User = Depe
     FETCH ALL ORDERS PLACED BY USER AND CHECK ORDER STATUS
     """
     return admin.view_orders(db, current_user.email)
+
+
+@router.post("/add_discount_coupon", summary="Add Discount Coupons for Users", status_code=status.HTTP_201_CREATED)
+def add_discount_coupon(request: List[schemas.DiscountCoupon], db: Session = Depends(get_db),
+                        current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Admin adds Discount Coupon and its records
+    """
+    return admin.discount_coupon(db, request, current_user.email)
+
+
+@router.get("/show_discount_coupon")
+def show_discount_coupon(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Get All the Discount Coupons Visible.
+    """
+    return admin.show_discount_coupon(db, current_user.email)
