@@ -57,6 +57,10 @@ def invoiceFormat(email, invoice, shipping_info, items, discount):
             <td>ORDER STATUS:               </td>
             <td>{3}</td>
         </tr>
+        <tr>
+            <td>PAYMENT LINK:               </td>
+            <td>{11}</td>
+        </tr>
         </table>
         *********************************************************************<br>
         <p>{4}</p>
@@ -65,7 +69,7 @@ def invoiceFormat(email, invoice, shipping_info, items, discount):
         Grocery Store
         </body>
         </html>
-        """.format(email, invoice['id'], (invoice['amount']/100), invoice['status'], invoice['notes'][0],
+        """.format(email, invoice['id'], (invoice['amount']/100), "pending", invoice['notes'][0],
                    getattr(shipping_info, "address"), getattr(shipping_info, "city"), getattr(shipping_info, "state"),
-                   getattr(shipping_info, "phone_no"), items, discount)
+                   getattr(shipping_info, "phone_no"), items, discount, invoice['notes'][1])
     return subject, recipient, message
