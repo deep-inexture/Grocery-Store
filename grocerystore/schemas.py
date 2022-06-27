@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
+import datetime
 
 """
 Following File contains BaseModel for each table to make it visible in json format while building APIs.'
@@ -15,7 +16,7 @@ class ProductBase(BaseModel):
     price: float = 0
     quantity: int = 0
 
-    class Conf:
+    class Config:
         orm_mode = True
 
 
@@ -69,7 +70,7 @@ class ShowUser(ShowUserBase):
 class ShippingInfo(BaseModel):
     """User UseCase: Elements required while filling Shipping info."""
     name: str
-    phone_no: int
+    phone_no: str
     address: str
     city: str
     state: str
@@ -153,6 +154,35 @@ class WalletBalance(BaseModel):
     user_id: int
     acc_balance: float
     owner: ShowUserBase
+
+    class Config:
+        orm_mode = True
+
+
+class DiscountCoupon(BaseModel):
+    """Admin/User UseCase : Keeps Records of Discount Coupon for user to use."""
+    coupon_code: str
+    discount_percentage: int
+    valid_till: str
+
+    class Config:
+        orm_mode = True
+
+
+class ShowDiscountCoupon(BaseModel):
+    """Admin/User UseCase : Keeps Records of Discount Coupon for user to use."""
+    id: int
+    coupon_code: str
+    discount_percentage: int
+    valid_till: datetime.date
+
+    class Config:
+        orm_mode = True
+
+
+class CheckDiscountCoupon(BaseModel):
+    """Admin/User UseCase : Keeps Records of Discount Coupon for user to use."""
+    coupon_code: Optional[str] = ""
 
     class Config:
         orm_mode = True

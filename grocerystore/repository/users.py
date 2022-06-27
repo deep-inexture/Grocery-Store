@@ -1,9 +1,14 @@
+import os
+
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from .. import models
 from . import admin, messages, emailFormat, emailUtil
 from sqlalchemy import and_, func, desc, asc
 import razorpay
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def view_products(db: Session):
@@ -96,6 +101,9 @@ def add_shipping_info(request, db: Session, email):
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
+    if len(request.phone_no) != 10:
+        raise HTTPException(status_code=401, detail=messages.INVALID_PHONE_401)
+
     user_id = db.query(models.User.id).filter(models.User.email == email).first()
     new_address = models.ShippingInfo(
         name=request.name,
@@ -138,7 +146,7 @@ def delete_item_from_cart(item_id: int, db: Session, email):
     return {f"Product {item_to_be_deleted}": "Deleted Successfully"}
 
 
-def order_payment(db, email):
+def order_payment(request, db, email):
     """Payment gateway for pay for products owned."""
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
@@ -155,8 +163,20 @@ def order_payment(db, email):
     if not shipping_info:
         raise HTTPException(status_code=404, detail=messages.SHIPPING_UNAVAILABLE_404)
 
+    """Fetch the Coupon Code and verify"""
+    coupon_code = db.query(models.DiscountCoupon).filter(models.DiscountCoupon.coupon_code == request.coupon_code).first()
+
+    if request.coupon_code == "":
+        coupon_discount = 0
+    elif not coupon_code:
+        raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
+    else:
+        coupon_discount = getattr(coupon_code, "discount_percentage")
+        coupon_code.times_used = getattr(coupon_code, "times_used") + 1
+
     """Fetch the Total Amount Payable By User"""
     total_amount = db.query(func.sum(models.MyCart.total)).filter(models.MyCart.user_id == user_id[0]).all()
+    total_amount = (total_amount[0][0] - ((total_amount[0][0]*coupon_discount)/100))
 
     """Check Quantity of Product in Grocery and decrease if Order is purchased By User"""
     product_details = db.query(models.Product).filter(and_(models.MyCart.user_id == user_id[0], models.Product.id == models.MyCart.product_id)).all()
@@ -164,16 +184,18 @@ def order_payment(db, email):
         i.quantity = (getattr(i, "quantity") - getattr(j, "product_quantity"))
 
     """Generate Invoice for User Orders"""
-    client = razorpay.Client(auth=("rzp_test_zy1IBpjZKAWeCs", "C4uGQ8GQQDQueR5IRownJKVM"))
-    invoice = client.order.create({'amount': total_amount[0][0]*100, 'currency': 'INR', 'payment_capture': '1', 'notes': [
-            'Thank You! Please Visit Again...'
+    RZP_KEY_ID = os.environ.get('RZP_KEY_ID')
+    RZP_SECRET_KEY = os.environ.get('RZP_SECRET_KEY')
+    client = razorpay.Client(auth=(RZP_KEY_ID, RZP_SECRET_KEY))
+    invoice = client.order.create({'amount': total_amount*100, 'currency': 'INR', 'payment_capture': '1', 'notes': [
+        'Thank You! Please Visit Again...'
     ]})
 
     new_order = models.OrderDetails(
         user_id=user_id[0],
         shipping_id=getattr(shipping_info, "id"),
         description=invoice['id'],
-        total_amount=total_amount[0][0],
+        total_amount=total_amount,
         payment_status="completed"
     )
 
@@ -184,7 +206,9 @@ def order_payment(db, email):
     db.refresh(new_order)
 
     """Formatting Email"""
-    subject, recipient, message = emailFormat.invoiceFormat(email, invoice)
+    subject, recipient, message = emailFormat.invoiceFormat(email, invoice, shipping_info,
+                                                            len(check_cart_existence),
+                                                            coupon_discount)
 
     """Sending Email to User"""
     emailUtil.send_email(subject, recipient, message)
@@ -208,7 +232,8 @@ def cancel_order(item_id: int, db, email):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
     user_id = db.query(models.User.id).filter(models.User.email == email).first()
-    my_order = db.query(models.OrderDetails).filter(and_(models.OrderDetails.id == item_id, models.OrderDetails.user_id == user_id[0])).first()
+    my_order = db.query(models.OrderDetails).filter(and_(models.OrderDetails.id == item_id,
+                                                         models.OrderDetails.user_id == user_id[0])).first()
     if not my_order:
         raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
     my_order.payment_status = "refunded"
@@ -236,3 +261,8 @@ def view_balance(db, email):
     balance = db.query(models.MyWallet).filter(models.MyWallet.user_id == user_id[0]).first()
 
     return balance
+
+
+def show_discount_coupon(db: Session):
+    """Return all discount coupon details ."""
+    return db.query(models.DiscountCoupon).all()
