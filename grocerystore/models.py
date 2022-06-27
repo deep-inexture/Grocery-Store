@@ -1,5 +1,5 @@
 from .database import Base
-from sqlalchemy import String, Integer, Column, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy import String, Integer, Column, Float, Boolean, DateTime, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
 # This files stores schemas of tables like tableName, tableColumn, and its Datatype.
@@ -51,7 +51,7 @@ class ShippingInfo(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), nullable=True)
-    phone_no = Column(Integer, nullable=False)
+    phone_no = Column(String(10), nullable=False)
     address = Column(String(255), nullable=False)
     city = Column(String(50), nullable=False)
     state = Column(String(50), nullable=False)
@@ -98,3 +98,14 @@ class MyWallet(Base):
     acc_balance = Column(Float, default=0)
 
     owner = relationship("User", back_populates="my_wallet")
+
+
+class DiscountCoupon(Base):
+    """Keeps Records of Discount Coupons."""
+    __tablename__ = "discount_coupon"
+
+    id = Column(Integer, primary_key=True, index=True)
+    coupon_code = Column(String(20), nullable=False)
+    discount_percentage = Column(Integer, nullable=False)
+    valid_till = Column(Date)
+    times_used = Column(Integer, default=0)

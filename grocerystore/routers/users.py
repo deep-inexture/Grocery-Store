@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from .. import database, schemas, oauth2
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from ..repository import users
 from fastapi_pagination import Page, add_pagination, paginate, LimitOffsetPage
 
@@ -71,11 +71,11 @@ def show_shipping_info(db: Session = Depends(get_db), current_user: schemas.User
 
 
 @router.post("/order_payment")
-def order_payment_page(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+def order_payment_page(request: schemas.CheckDiscountCoupon, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     Get the Payment Link to pay for your Order
     """
-    return users.order_payment(db, current_user.email)
+    return users.order_payment(request, db, current_user.email)
 
 
 @router.get("/order_history")
@@ -100,6 +100,14 @@ def view_balance(db: Session = Depends(get_db), current_user: schemas.User = Dep
     Fetch the User Wallet Balance.
     """
     return users.view_balance(db, current_user.email)
+
+
+@router.get('/show_discount_coupon', response_model=List[schemas.ShowDiscountCoupon])
+def show_discount_coupon(db: Session = Depends(get_db)):
+    """
+    Get All the Discount Coupons Visible.
+    """
+    return users.show_discount_coupon(db)
 
 
 add_pagination(router)
