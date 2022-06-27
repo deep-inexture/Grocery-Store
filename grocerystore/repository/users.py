@@ -1,5 +1,5 @@
 import os
-
+import datetime
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from .. import models
@@ -165,6 +165,8 @@ def order_payment(request, db, email):
 
     """Fetch the Coupon Code and verify"""
     coupon_code = db.query(models.DiscountCoupon).filter(models.DiscountCoupon.coupon_code == request.coupon_code).first()
+    if str(getattr(coupon_code, "valid_till")) < datetime.date.today().strftime("%Y-%m-%d"):
+        raise HTTPException(status_code=401, detail=messages.COUPON_EXPIRED_404)
 
     if request.coupon_code == "":
         coupon_discount = 0
