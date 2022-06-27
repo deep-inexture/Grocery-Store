@@ -70,7 +70,7 @@ class ShowUser(ShowUserBase):
 class ShippingInfo(BaseModel):
     """User UseCase: Elements required while filling Shipping info."""
     name: str
-    phone_no: int
+    phone_no: str
     address: str
     city: str
     state: str
