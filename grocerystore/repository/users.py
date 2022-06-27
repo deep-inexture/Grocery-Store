@@ -187,9 +187,9 @@ def order_payment(request, db, email):
     RZP_KEY_ID = os.environ.get('RZP_KEY_ID')
     RZP_SECRET_KEY = os.environ.get('RZP_SECRET_KEY')
     client = razorpay.Client(auth=(RZP_KEY_ID, RZP_SECRET_KEY))
-    invoice = client.order.create({'amount': total_amount*100, 'currency': 'INR', 'payment_capture': '1', 'notes': [
-        'Thank You! Please Visit Again...'
-    ]})
+    invoice = client.order.create({'amount': total_amount*100, 'currency': 'INR', 'payment_capture': '1',
+                                   'notes': ['Thank You! Please Visit Again...', 'https://rzp.io/i/njYysZq'],
+                                   })
 
     new_order = models.OrderDetails(
         user_id=user_id[0],
