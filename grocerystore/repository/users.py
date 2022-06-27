@@ -1,9 +1,14 @@
+import os
+
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from .. import models
 from . import admin, messages, emailFormat, emailUtil
 from sqlalchemy import and_, func, desc, asc
 import razorpay
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def view_products(db: Session):
@@ -96,6 +101,9 @@ def add_shipping_info(request, db: Session, email):
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
+    if len(request.phone_no) != 10:
+        raise HTTPException(status_code=401, detail=messages.INVALID_PHONE_401)
+
     user_id = db.query(models.User.id).filter(models.User.email == email).first()
     new_address = models.ShippingInfo(
         name=request.name,
@@ -176,9 +184,11 @@ def order_payment(request, db, email):
         i.quantity = (getattr(i, "quantity") - getattr(j, "product_quantity"))
 
     """Generate Invoice for User Orders"""
-    client = razorpay.Client(auth=("rzp_test_zy1IBpjZKAWeCs", "C4uGQ8GQQDQueR5IRownJKVM"))
+    RZP_KEY_ID = os.environ.get('RZP_KEY_ID')
+    RZP_SECRET_KEY = os.environ.get('RZP_SECRET_KEY')
+    client = razorpay.Client(auth=(RZP_KEY_ID, RZP_SECRET_KEY))
     invoice = client.order.create({'amount': total_amount*100, 'currency': 'INR', 'payment_capture': '1', 'notes': [
-            'Thank You! Please Visit Again...'
+        'Thank You! Please Visit Again...'
     ]})
 
     new_order = models.OrderDetails(
@@ -196,7 +206,9 @@ def order_payment(request, db, email):
     db.refresh(new_order)
 
     """Formatting Email"""
-    subject, recipient, message = emailFormat.invoiceFormat(email, invoice)
+    subject, recipient, message = emailFormat.invoiceFormat(email, invoice, shipping_info,
+                                                            len(check_cart_existence),
+                                                            coupon_discount)
 
     """Sending Email to User"""
     emailUtil.send_email(subject, recipient, message)
@@ -220,7 +232,8 @@ def cancel_order(item_id: int, db, email):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
     user_id = db.query(models.User.id).filter(models.User.email == email).first()
-    my_order = db.query(models.OrderDetails).filter(and_(models.OrderDetails.id == item_id, models.OrderDetails.user_id == user_id[0])).first()
+    my_order = db.query(models.OrderDetails).filter(and_(models.OrderDetails.id == item_id,
+                                                         models.OrderDetails.user_id == user_id[0])).first()
     if not my_order:
         raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
     my_order.payment_status = "refunded"

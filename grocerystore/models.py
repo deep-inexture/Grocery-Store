@@ -51,7 +51,7 @@ class ShippingInfo(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), nullable=True)
-    phone_no = Column(Integer, nullable=False)
+    phone_no = Column(String(10), nullable=False)
     address = Column(String(255), nullable=False)
     city = Column(String(50), nullable=False)
     state = Column(String(50), nullable=False)
