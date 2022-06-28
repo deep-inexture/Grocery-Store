@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from . import schemas
+from grocerystore import schemas
 from dotenv import load_dotenv
 import os
 
