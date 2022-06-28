@@ -5,8 +5,15 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
+"""
+Email Sending Background Processes and Information via smtplib and email.
+"""
+
 
 def send_email(subject, to, text):
+    """
+    Function Call when Email process execution takes place.
+    """
     try:
         load_dotenv()
         MAIL_USERNAME = os.environ.get('MAIL_USERNAME')

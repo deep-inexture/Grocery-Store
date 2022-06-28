@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from .. import models, schemas
-from . import messages
+from grocerystore import models, schemas
+from grocerystore.repository import messages
 from typing import List
 import datetime
 
