@@ -12,7 +12,7 @@ def forgotPasswordFormat(email, reset_code):
     """
     Structure for Forgot Password Reset Link.
     """
-    DB_URL = os.environ.get('DB_URL')
+    DB_URL = os.environ.get('SITE_URL')
     subject = "Hello User"
     recipient = email
     message = """
