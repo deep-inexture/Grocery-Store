@@ -1,3 +1,8 @@
+"""
+Collection of all Error and Success Messages for overall project.
+"""
+
+
 NO_CHANGES_302 = "No Change Detected!"
 NOT_AUTHORIZE_401 = "You are not Authorized to view this Page!"
 INVALID_EMAIL_401 = "Invalid Email-ID Format!!!"
@@ -18,12 +23,15 @@ OUT_OF_STOCK = "Out of Stock"
 
 
 def Product_Not_Found_404(msg):
+    """Product Not Found Error Message"""
     return f"Item with ID: ({msg}) NOT EXISTS!!!"
 
 
 def Email_exists_409(email):
+    """Email Exists Message when Registration Takes Place."""
     return f"{email} Already Exists. Please Try Another Email-ID"
 
 
 def Stock_Unavailable_404(quantity):
+    """Stock Not Available when User Search for any Products in Grocery."""
     return f"Stock UnAvailable! {quantity} Stocks left."
