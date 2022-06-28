@@ -2,8 +2,8 @@ import os
 import datetime
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from .. import models
-from . import admin, messages, emailFormat, emailUtil
+from grocerystore import models
+from grocerystore.repository import admin, messages, emailFormat, emailUtil
 from sqlalchemy import and_, func, desc, asc
 import razorpay
 from dotenv import load_dotenv
@@ -219,6 +219,7 @@ def order_payment(request, db, email):
 
 
 def order_history(db, email):
+    """Users all Order History Till Date and its Info"""
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -230,6 +231,7 @@ def order_history(db, email):
 
 
 def cancel_order(item_id: int, db, email):
+    """Cancel Order and RefundOrder Amount to Wallet Section."""
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 

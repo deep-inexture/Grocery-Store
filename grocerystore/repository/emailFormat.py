@@ -1,4 +1,18 @@
+import os
+from dotenv import load_dotenv
+
+"""
+Collection of Email Structures.
+"""
+
+load_dotenv()
+
+
 def forgotPasswordFormat(email, reset_code):
+    """
+    Structure for Forgot Password Reset Link.
+    """
+    DB_URL = os.environ.get('DB_URL')
     subject = "Hello User"
     recipient = email
     message = """
@@ -8,15 +22,18 @@ def forgotPasswordFormat(email, reset_code):
         <body>
         <h3>Hello, {0:}</h3>
         <p>Password Reset Request has been received by Someone.</p>
-        <p>Your Token to Reset Password :<u>{1}</u></p>
+        <p>Visit Below Link to Reset Your Password<br><u>{2}/{1}</u></p>
         <p>If you did not requested, You can ignore this mail!<p>
         </body>
         </html>
-        """.format(email, reset_code)
+        """.format(email, reset_code, DB_URL)
     return subject, recipient, message
 
 
 def invoiceFormat(email, invoice, shipping_info, items, discount):
+    """
+    Email Structure to Send Product Invoice to User
+    """
     subject = "Grocery Store - Order Invoice"
     recipient = email
     message = """

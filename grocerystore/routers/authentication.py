@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from .. import schemas, database, oauth2
-from ..repository import authentication
+from grocerystore import schemas, database, oauth2
+from grocerystore.repository import authentication
 from sqlalchemy.orm import Session
 
 
