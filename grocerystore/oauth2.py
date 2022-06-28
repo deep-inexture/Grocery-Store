@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from . import token
+from grocerystore import token
 
 # Following file checks which path requires token Bearer to be generated and throws error code
 # for eah not authenticated User.
