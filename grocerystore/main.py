@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from . import models
-from .database import engine
-from .routers import admin, authentication, users
+from grocerystore import models
+from grocerystore.database import engine
+from grocerystore.routers import admin, authentication, users
 
 # Creates an Object of FastAPI Instance as app with some Title and Description while viewing in
 # Swagger or ReadDoc mode.

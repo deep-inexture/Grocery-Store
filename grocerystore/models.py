@@ -1,4 +1,4 @@
-from .database import Base
+from grocerystore.database import Base
 from sqlalchemy import String, Integer, Column, Float, Boolean, DateTime, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
