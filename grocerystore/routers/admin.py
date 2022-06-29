@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from grocerystore import database, schemas, oauth2
 from typing import List
-import os
-from grocerystore.repository import admin
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import database, schemas, oauth2
+from repository import admin
 
 # This File Contains all Admin Related Routes such as ADD | UPDATE | DELETE Products and many more.
 # All validations and query gets fired in other file with same name in repository directory.

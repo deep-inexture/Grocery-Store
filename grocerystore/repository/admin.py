@@ -1,9 +1,11 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from grocerystore import models, schemas
-from grocerystore.repository import messages
 from typing import List
 import datetime
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import models, schemas
+from repository import messages
 
 # This File does all validations related stuff to maintain routers to only route and keep file clean.
 # All Database query stuff also takes place here.

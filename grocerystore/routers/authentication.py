@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends
-from grocerystore import schemas, database, oauth2
-from grocerystore.repository import authentication
 from sqlalchemy.orm import Session
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import schemas, database, oauth2
+from repository import authentication
 
 
 # It includes Authentication routers for both User & Admin
