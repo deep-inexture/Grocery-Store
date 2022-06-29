@@ -1,12 +1,13 @@
-import os
 import datetime
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from grocerystore import models
-from grocerystore.repository import admin, messages, emailFormat, emailUtil
 from sqlalchemy import and_, func, desc, asc
 import razorpay
 from dotenv import load_dotenv
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import models
+from repository import admin, messages, emailFormat, emailUtil
 
 load_dotenv()
 

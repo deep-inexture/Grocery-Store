@@ -1,9 +1,14 @@
 from fastapi import APIRouter, Depends, status
-from grocerystore import database, schemas, oauth2
 from sqlalchemy.orm import Session
 from typing import List
-from grocerystore.repository import users
 from fastapi_pagination import Page, add_pagination, paginate, LimitOffsetPage
+
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import database, schemas, oauth2
+from repository import users
+
 
 router = APIRouter(
     tags=["User"],

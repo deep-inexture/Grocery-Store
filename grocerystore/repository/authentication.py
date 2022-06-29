@@ -1,11 +1,16 @@
 import datetime
-from grocerystore.repository import emailUtil, messages, emailFormat
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from grocerystore import models, token
-from grocerystore.hashing import Hash
 import re
 import uuid
+
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from repository import emailUtil, messages, emailFormat
+import models
+import tokens
+from hashing import Hash
 
 
 def register(request, db: Session):
@@ -46,8 +51,8 @@ def login(request, db: Session):
     if not Hash.verify(user.password, request.password):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.INCORRECT_PASSWORD_404)
 
-    access_token = token.create_access_token(data={"sub": user.email})
-    refresh_token = token.create_refresh_token(data={"sub": user.email})
+    access_token = tokens.create_access_token(data={"sub": user.email})
+    refresh_token = tokens.create_refresh_token(data={"sub": user.email})
     return {"access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer"}
@@ -55,7 +60,7 @@ def login(request, db: Session):
 
 def new_access_token(email):
     """Create New Access Token from Refresh Token and replace with Access Token"""
-    access_token = token.create_access_token(data={"sub": email})
+    access_token = tokens.create_access_token(data={"sub": email})
     return {'new_access_token': access_token}
 
 

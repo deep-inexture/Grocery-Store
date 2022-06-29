@@ -1,4 +1,7 @@
-from grocerystore.database import Base
+import os, sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from database import Base
 from sqlalchemy import String, Integer, Column, Float, Boolean, DateTime, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
