@@ -1,6 +1,10 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from grocerystore import token
+
+import os, sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+import tokens
 
 # Following file checks which path requires token Bearer to be generated and throws error code
 # for eah not authenticated User.
@@ -17,7 +21,7 @@ def get_current_user(data: str = Depends(oauth2_scheme)):
         detail="Invalid ACCESS TOKEN. Please Check and come back!!!",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    email_token = token.verify_token(data, credentials_exception)
+    email_token = tokens.verify_token(data, credentials_exception)
     return email_token
 
 
@@ -30,5 +34,5 @@ def get_current_user_access_token(data: str = Depends(oauth2_scheme)):
         detail="Invalid ACCESS TOKEN. Please Check and come back!!!",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    email_token = token.verify_refresh_token(data, credentials_exception)
+    email_token = tokens.verify_refresh_token(data, credentials_exception)
     return email_token
