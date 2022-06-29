@@ -3,6 +3,11 @@ from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
 
+"""
+This Page makes Database Connection to execute and close database connection after every use.
+The get_db function is called every time db calls.
+"""
+
 # Below function will load the required Environment variable to use anywhere in particular file.
 load_dotenv()
 

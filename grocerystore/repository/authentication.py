@@ -3,14 +3,14 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 import re
 import uuid
+from ..repository import emailUtil, messages, emailFormat
+from .. import models, tokens
+from ..hashing import Hash
 
-import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from repository import emailUtil, messages, emailFormat
-import models
-import tokens
-from hashing import Hash
+"""
+This File does all validations related stuff for Login, Register, & Forgot Password.
+All Database query stuff also takes place here.
+"""
 
 
 def register(request, db: Session):

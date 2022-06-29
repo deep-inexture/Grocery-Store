@@ -1,14 +1,15 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import asc
 from typing import List
 import datetime
-import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import models, schemas
-from repository import messages
+from .. import models, schemas
+from ..repository import messages
 
-# This File does all validations related stuff to maintain routers to only route and keep file clean.
-# All Database query stuff also takes place here.
+"""
+This File does all validations related stuff to maintain routers to only route and keep file clean.
+All Database query stuff also takes place here.
+"""
 
 
 def is_admin(email: str, db: Session):
@@ -24,7 +25,7 @@ def all_products(db: Session, email):
     if not is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
-    return db.query(models.Product).all()
+    return db.query(models.Product).order_by(asc(models.Product.id)).all()
 
 
 def add_product(db: Session, request: List[schemas.ProductBase], email):
