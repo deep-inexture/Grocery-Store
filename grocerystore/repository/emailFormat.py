@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 """
-Collection of Email Structures.
+Collection of Email Structures. ForgotPassword Links Format and Order Invoice Format.
 """
 
 load_dotenv()

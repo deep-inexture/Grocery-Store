@@ -1,13 +1,11 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from . import tokens
 
-import os, sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-import tokens
-
-# Following file checks which path requires token Bearer to be generated and throws error code
-# for eah not authenticated User.
+"""
+Following file checks which path requires token Bearer to be generated and throws error code
+for eah not authenticated User.
+"""
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 

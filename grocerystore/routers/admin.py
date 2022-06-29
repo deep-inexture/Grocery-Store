@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from typing import List
-import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import database, schemas, oauth2
-from repository import admin
+from fastapi_pagination import Page, add_pagination, paginate, LimitOffsetPage
+from .. import database, schemas, oauth2
+from ..repository import admin
 
-# This File Contains all Admin Related Routes such as ADD | UPDATE | DELETE Products and many more.
-# All validations and query gets fired in other file with same name in repository directory.
+"""
+This File Contains all Admin Related Routes such as ADD | UPDATE | DELETE Products and many more.
+All validations and query gets fired in other file with same name in repository directory.
+"""
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 router = APIRouter(
     tags=["Admin"],
@@ -18,12 +18,12 @@ router = APIRouter(
 get_db = database.get_db
 
 
-@router.get("/get_items", response_model=List[schemas.Product])
+@router.get("/get_items", response_model=Page[schemas.Product])
 def all_products(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     FETCH ALL PRODUCTS AVAILABLE IN GROCERY
     """
-    return admin.all_products(db, current_user.email)
+    return paginate(admin.all_products(db, current_user.email))
 
 
 @router.post("/create_items", status_code=status.HTTP_201_CREATED)
@@ -75,3 +75,6 @@ def show_discount_coupon(db: Session = Depends(get_db), current_user: schemas.Us
     Get All the Discount Coupons Visible.
     """
     return admin.show_discount_coupon(db, current_user.email)
+
+
+add_pagination(router)

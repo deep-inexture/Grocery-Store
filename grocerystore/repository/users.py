@@ -4,12 +4,15 @@ from fastapi import HTTPException, status
 from sqlalchemy import and_, func, desc, asc
 import razorpay
 from dotenv import load_dotenv
-import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import models
-from repository import admin, messages, emailFormat, emailUtil
+from .. import models
+from ..repository import admin, messages, emailFormat, emailUtil
 
 load_dotenv()
+
+"""
+This File does all validations related stuff for users Add | View | Order | Invoice | Payment etc.
+All Database query stuff also takes place here.
+"""
 
 
 def view_products(db: Session):
@@ -19,17 +22,21 @@ def view_products(db: Session):
 
 def search_by_name(name: str, db: Session):
     """Function return products that match the name filter."""
-    return db.query(models.Product).filter(models.Product.title.like(name+'%')).all()
+    return db.query(models.Product).filter(models.Product.title.like(name+'%')).order_by(
+        asc(models.Product.id)).all()
 
 
 def search_by_price(max_price: float, min_price: float, db: Session):
     """Function return products that match the price filter."""
-    return db.query(models.Product).filter(models.Product.price > min_price, models.Product.price < max_price).all()
+    return db.query(models.Product).filter(models.Product.price > min_price, models.Product.price < max_price).order_by(
+        asc(models.Product.id)).all()
 
 
 def search_by_name_and_price(request, db: Session):
     """Common function that returns the products with name/price or name and price filters."""
-    name_and_price = db.query(models.Product).filter(and_(and_(models.Product.price > request.min_price, models.Product.price < request.max_price), (models.Product.title.like(request.item_name+'%')))).all()
+    name_and_price = db.query(models.Product).filter(and_(
+        and_(models.Product.price > request.min_price, models.Product.price < request.max_price),
+        (models.Product.title.like(request.item_name+'%')))).order_by(asc(models.Product.id)).all()
     if not name_and_price:
         raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
     return name_and_price
@@ -166,14 +173,14 @@ def order_payment(request, db, email):
 
     """Fetch the Coupon Code and verify"""
     coupon_code = db.query(models.DiscountCoupon).filter(models.DiscountCoupon.coupon_code == request.coupon_code).first()
-    if str(getattr(coupon_code, "valid_till")) < datetime.date.today().strftime("%Y-%m-%d"):
-        raise HTTPException(status_code=401, detail=messages.COUPON_EXPIRED_404)
 
     if request.coupon_code == "":
         coupon_discount = 0
     elif not coupon_code:
         raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
     else:
+        if str(getattr(coupon_code, "valid_till")) < datetime.date.today().strftime("%Y-%m-%d"):
+            raise HTTPException(status_code=401, detail=messages.COUPON_EXPIRED_404)
         coupon_discount = getattr(coupon_code, "discount_percentage")
         coupon_code.times_used = getattr(coupon_code, "times_used") + 1
 

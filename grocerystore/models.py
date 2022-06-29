@@ -1,12 +1,11 @@
-import os, sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from database import Base
+from .database import Base
 from sqlalchemy import String, Integer, Column, Float, Boolean, DateTime, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
-# This files stores schemas of tables like tableName, tableColumn, and its Datatype.
-# Main file sees into this file first for each non created table to be generated or not.
+"""
+This files stores schemas of tables like tableName, tableColumn, and its Datatype.
+Main file sees into this file first for each non created table to be generated or not.
+"""
 
 
 class Product(Base):
