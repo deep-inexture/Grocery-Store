@@ -42,9 +42,9 @@ def invoiceFormat(email, invoice, shipping_info, items, discount):
         <title>Invoice</title>
         <body>
         <h3>Hello, {0:}</h3>
-        *********************************************************************<br>
+        <hr>
         INVOICE<br>
-        *********************************************************************<br>
+        <hr>
         <table border="0">
         <tr>
             <td>ORDER ID:                   </td>
@@ -79,14 +79,14 @@ def invoiceFormat(email, invoice, shipping_info, items, discount):
             <td>{11}</td>
         </tr>
         </table>
-        *********************************************************************<br>
+        <hr>
         <p>{4}</p>
         <br><br>
         Regards,<br> 
         Grocery Store
         </body>
         </html>
-        """.format(email, invoice['id'], (invoice['amount']/100), "pending", invoice['notes'][0],
+        """.format(email, invoice['id'], (invoice['amount_total']/100), invoice['payment_status'], 'Thank You! Please Visit Again...',
                    getattr(shipping_info, "address"), getattr(shipping_info, "city"), getattr(shipping_info, "state"),
-                   getattr(shipping_info, "phone_no"), items, discount, invoice['notes'][1])
+                   getattr(shipping_info, "phone_no"), items, discount, invoice['url'])
     return subject, recipient, message

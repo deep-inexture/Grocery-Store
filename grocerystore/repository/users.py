@@ -3,7 +3,7 @@ import os
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy import and_, func, desc, asc
-import razorpay
+import stripe
 from dotenv import load_dotenv
 from .. import models
 from ..repository import admin, messages, emailFormat, emailUtil
@@ -195,12 +195,41 @@ def order_payment(request, db, email):
         i.quantity = (getattr(i, "quantity") - getattr(j, "product_quantity"))
 
     """Generate Invoice for User Orders"""
-    RZP_KEY_ID = os.environ.get('RZP_KEY_ID')
-    RZP_SECRET_KEY = os.environ.get('RZP_SECRET_KEY')
-    client = razorpay.Client(auth=(RZP_KEY_ID, RZP_SECRET_KEY))
-    invoice = client.order.create({'amount': total_amount*100, 'currency': 'INR', 'payment_capture': '1',
-                                   'notes': ['Thank You! Please Visit Again...', 'https://rzp.io/i/njYysZq'],
-                                   })
+    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+    invoice = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'inr',
+                        'product_data': {
+                            'name': 'cart',
+                        },
+                        'unit_amount': int(total_amount * 100),
+                    },
+                    'quantity': len(check_cart_existence),
+                }],
+                mode='payment',
+                success_url='http://127.0.0.1:8000'+'/templates/success.html',
+                cancel_url='http://127.0.0.1:8000'+'/templates/cancel.html',
+            )
+    card_obj = stripe.PaymentMethod.create(
+        type="card",
+        card={
+            "number": "4242424242424242",
+            "exp_month": 7,
+            "exp_year": 2023,
+            "cvc": "123",
+        },
+    )
+    customer = stripe.Customer.create(
+        email=email, payment_method=card_obj.id
+    )
+    strp = stripe.PaymentIntent.create(
+        customer=customer.id,
+        payment_method=card_obj.id,
+        currency="inr",
+        amount=int(total_amount * 100),
+    )
 
     new_order = models.OrderDetails(
         user_id=user_id[0],

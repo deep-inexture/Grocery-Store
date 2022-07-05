@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from . import models
 from .database import engine
 from .routers import admin, authentication, users
+from fastapi.staticfiles import StaticFiles
 
 """
 Creates an Object of FastAPI Instance as app with some Title and Description while viewing in
@@ -40,6 +41,9 @@ app = FastAPI(
     },
     openapi_tags=tags_metadata
 )
+
+"""Allow Static Files to use in app via mounting"""
+app.mount("/templates", StaticFiles(directory="grocerystore/templates", html = True), name="templates")
 
 """Following command will create new tables if not exists in Database."""
 """Now We are using alembic migrations."""
