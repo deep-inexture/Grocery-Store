@@ -13,7 +13,18 @@ All Database query stuff also takes place here.
 
 
 def is_admin(email: str, db: Session):
-    """Check isAdmin feature so that no user can access admin use cases."""
+    """
+    Check isAdmin feature so that no user can access admin use cases.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In Admin Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: bool - Return True in only if admin is Logged-In
+    """
     check_user = db.query(models.User).filter(models.User.email == email).first()
     if getattr(check_user, 'email') != 'admin@admin.in':
         return False
@@ -21,7 +32,18 @@ def is_admin(email: str, db: Session):
 
 
 def all_products(db: Session, email):
-    """Return all products details to verify after adding/updating."""
+    """
+    Return all products details to verify after adding/updating.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In Admin Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data as per Schema-Content
+    """
     if not is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -29,7 +51,19 @@ def all_products(db: Session, email):
 
 
 def add_product(db: Session, request: List[schemas.ProductBase], email):
-    """Add products to grocery via requested details."""
+    """
+    Add products to grocery via requested details.
+    Parameters
+    ----------------------------------------------------------
+    request: Schemas Object - Add multiple Lists of data
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In Admin Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Status of Products added or not
+    """
     if not is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -48,7 +82,20 @@ def add_product(db: Session, request: List[schemas.ProductBase], email):
 
 
 def update_product(item_id: int, db: Session, item: schemas.ProductBase, email):
-    """Update items and their details as per requirements."""
+    """
+    Update items and their details as per requirements.
+    Parameters
+    ----------------------------------------------------------
+    item_id: int - Product Item-ID
+    item: schemas Object - Update item desc by item ID
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In Admin Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch updates made on products
+    """
     if not is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -81,7 +128,19 @@ def update_product(item_id: int, db: Session, item: schemas.ProductBase, email):
 
 
 def delete_product(item_id: int, db: Session, email):
-    """Delete products not needed in grocery with help of its id."""
+    """
+    Delete products not needed in grocery with help of its id.
+    Parameters
+    ----------------------------------------------------------
+    item_id: int - Product Item-ID
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In Admin Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data that deleted
+    """
     if not is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -96,7 +155,18 @@ def delete_product(item_id: int, db: Session, email):
 
 
 def view_orders(db: Session, email):
-    """View All Orders Details of User and status of Orders"""
+    """
+    View All Orders Details of User and status of Orders
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In Admin Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch All Data Available in Grocery
+    """
     if not is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -104,7 +174,19 @@ def view_orders(db: Session, email):
 
 
 def discount_coupon(db: Session, request: List[schemas.DiscountCoupon], email):
-    """Add Discount Coupon and its records"""
+    """
+    Add Discount Coupon and its records
+    Parameters
+    ----------------------------------------------------------
+    request: schemas Object - Add multiple Discount coupons'
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In Admin Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Status of Coupons
+    """
     if not is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -123,7 +205,18 @@ def discount_coupon(db: Session, request: List[schemas.DiscountCoupon], email):
 
 
 def show_discount_coupon(db: Session, email):
-    """Return all discount coupon details ."""
+    """
+    Return all discount coupon details.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In Admin Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data of all applicable coupons
+    """
     if not is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -131,5 +224,16 @@ def show_discount_coupon(db: Session, email):
 
 
 def fetch_data(item_id: int, db: Session):
-    """Common function to fetch data of products for other functions above."""
+    """
+    Common function to fetch data of products for other functions above.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    item_id: int - ID of product Item
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data of all products with applicable ID
+    """
     return db.query(models.Product).where(models.Product.id == item_id).first()

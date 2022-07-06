@@ -11,6 +11,15 @@ load_dotenv()
 def forgotPasswordFormat(email, reset_code):
     """
     Structure for Forgot Password Reset Link.
+    Parameters
+    ----------------------------------------------------------
+    reset_code: str - Token to reset Password
+    email: User Object - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: str - Mail Body
     """
     DB_URL = os.environ.get('SITE_URL')
     subject = "Hello User"
@@ -33,6 +42,18 @@ def forgotPasswordFormat(email, reset_code):
 def invoiceFormat(email, invoice, shipping_info, items, discount):
     """
     Email Structure to Send Product Invoice to User
+    Parameters
+    ----------------------------------------------------------
+    invoice: dict - Order Invoice Generated
+    email: User Object - Current Logged-In User Session
+    shipping_info: dict - User Address Info
+    items: int - Total no of Items Ordered
+    discount: int - Total applicable Discount
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: str - Mail Body
     """
     subject = "Grocery Store - Order Invoice"
     recipient = email

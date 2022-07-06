@@ -13,6 +13,14 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 def get_current_user(data: str = Depends(oauth2_scheme)):
     """
     This function provides email-id to function who has access to routes after successful Login.
+    Parameters
+    ----------------------------------------------------------
+    data: str - Oauth2 Session ID
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: str - access Token
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -26,6 +34,13 @@ def get_current_user(data: str = Depends(oauth2_scheme)):
 def get_current_user_access_token(data: str = Depends(oauth2_scheme)):
     """
     This function provides email-id to function who has access to routes after successful Login.
+    ----------------------------------------------------------
+    data: str - Oauth2 Session ID
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: str - new access Token
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

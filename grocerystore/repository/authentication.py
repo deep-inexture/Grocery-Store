@@ -14,7 +14,18 @@ All Database query stuff also takes place here.
 
 
 def register(request, db: Session):
-    """Function provides validation and authentication before registering for endpoint."""
+    """
+    Function provides validation and authentication before registering for endpoint.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    request: Schemas Object - Fetch key data to fetch values from user
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Registered Data of the user
+    """
     user = db.query(models.User).filter(models.User.email == request.email).first()
     if user:
         raise HTTPException(status_code=409, detail=messages.Email_exists_409(request.email))
@@ -44,7 +55,18 @@ def register(request, db: Session):
 
 
 def login(request, db: Session):
-    """Check Validation and password along with token to let access to other endpoints."""
+    """
+    Check Validation and password along with token to let access to other endpoints.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    request: Schemas Object - Fetch data for login requirements
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Access and Refresh Tokens
+    """
     user = db.query(models.User).filter(models.User.email == request.username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.INCORRECT_CREDENTIALS_404)
@@ -59,13 +81,34 @@ def login(request, db: Session):
 
 
 def new_access_token(email):
-    """Create New Access Token from Refresh Token and replace with Access Token"""
+    """
+    Create New Access Token from Refresh Token and replace with Access Token
+    Parameters
+    ----------------------------------------------------------
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Generates new access token from refresh token
+    """
     access_token = tokens.create_access_token(data={"sub": email})
     return {'new_access_token': access_token}
 
 
 def forgot_password(request, db: Session):
-    """Function request email of user to provide token for reset password access link."""
+    """
+    Function request email of user to provide token for reset password access link.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    request: Schemas Object - Contains data to fetch email
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Receive Email Message status/Confirmation
+    """
     user = db.query(models.User).filter(models.User.email == request.email).first()
     existing_user = db.query(models.ResetCode).filter(models.ResetCode.email == request.email).first()
     if not user:
@@ -89,7 +132,19 @@ def forgot_password(request, db: Session):
 
 
 def reset_password(reset_token, request, db: Session):
-    """Request for new token and new password validations before reset the old password with new."""
+    """
+    Request for new token and new password validations before reset the old password with new.
+    Parameters
+    ----------------------------------------------------------
+    reset_token: str - Token generated on email to check user presence in db.
+    db: Database Object - Fetching Schemas Content
+    request: Schemas Object - Contains Token and Password Keys
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch data for Password Update Confirmation
+    """
     user = db.query(models.ResetCode).filter(models.ResetCode.reset_code == reset_token).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.INCORRECT_TOKEN_404)

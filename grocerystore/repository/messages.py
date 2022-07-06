@@ -23,15 +23,45 @@ OUT_OF_STOCK = "Out of Stock"
 
 
 def Product_Not_Found_404(msg):
-    """Product Not Found Error Message"""
+    """
+    Product Not Found Error Message
+    Parameters
+    ----------------------------------------------------------
+    msg: str - Error Message
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: str - Message Info
+    """
     return f"Item with ID: ({msg}) NOT EXISTS!!!"
 
 
 def Email_exists_409(email):
-    """Email Exists Message when Registration Takes Place."""
+    """
+    Email Exists Message when Registration Takes Place.
+    Parameters
+    ----------------------------------------------------------
+    email: str - Email entered
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: str - Message Info
+    """
     return f"{email} Already Exists. Please Try Another Email-ID"
 
 
 def Stock_Unavailable_404(quantity):
-    """Stock Not Available when User Search for any Products in Grocery."""
+    """
+    Stock Not Available when User Search for any Products in Grocery.
+    Parameters
+    ----------------------------------------------------------
+    quantity: int - Quantity of Products wanted
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: str - Message status
+    """
     return f"Stock UnAvailable! {quantity} Stocks left."

@@ -21,6 +21,14 @@ JWT_REFRESH_SECRET_KEY = os.environ.get('JWT_REFRESH_SECRET_KEY')
 def create_access_token(data: dict):
     """
     Create Access Token using JWT and return encoded token to Login Section
+    Parameters
+    ----------------------------------------------------------
+    data: dict - access Token
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: UTF-8 - encoded access Token
     """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -32,6 +40,14 @@ def create_access_token(data: dict):
 def create_refresh_token(data: dict):
     """
     Re-Create Access Token from the Refresh Token in data dictionary.
+    Parameters
+    ----------------------------------------------------------
+    data: dict - refresh Token
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: UTF-8 - new encoded access Token
     """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
@@ -44,6 +60,15 @@ def verify_token(token: str, credentials_exception):
     """
     Once User gets login verify token using below method. And this code will be accessible for 30
     minutes.
+    Parameters
+    ----------------------------------------------------------
+    token: str - access Token
+    credentials_exception: exception - Invalid Exception Details
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: str - Token Data
     """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -60,6 +85,15 @@ def verify_token(token: str, credentials_exception):
 def verify_refresh_token(token: str, credentials_exception):
     """
     Once User apply for refresh token it automatically validates and provides new Access token.
+    Parameters
+    ----------------------------------------------------------
+    token: str - refresh token
+    credentials_exception: Exception - Invalid Credentials exception
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: str - token data
     """
     try:
         payload = jwt.decode(token, JWT_REFRESH_SECRET_KEY, algorithms=[ALGORITHM])

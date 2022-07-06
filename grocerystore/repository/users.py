@@ -17,24 +17,68 @@ All Database query stuff also takes place here.
 
 
 def view_products(db: Session):
-    """Return all products available in grocery with all its details"""
+    """
+    Return all products available in grocery with all its details
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data of all Products available in Grocery.
+    """
     return db.query(models.Product).order_by(asc(models.Product.id)).all()
 
 
 def search_by_name(name: str, db: Session):
-    """Function return products that match the name filter."""
+    """
+    Function return products that match the name filter.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    name: str - Matching or Un-matching names of Products
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data of all Products with similar names in Product title
+    """
     return db.query(models.Product).filter(models.Product.title.like(name+'%')).order_by(
         asc(models.Product.id)).all()
 
 
 def search_by_price(max_price: float, min_price: float, db: Session):
-    """Function return products that match the price filter."""
+    """
+    Function return products that match the price filter.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    max_price: float - Maximum price tag to filter within
+    min_price: float - Minimum Price tag to start with
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data of all Products between the price tag filter
+    """
     return db.query(models.Product).filter(models.Product.price > min_price, models.Product.price < max_price).order_by(
         asc(models.Product.id)).all()
 
 
 def search_by_name_and_price(request, db: Session):
-    """Common function that returns the products with name/price or name and price filters."""
+    """
+    Common function that returns the products with name/price or name and price filters.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    request: schemas Object - Contains data for Searching Products
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data of all Products after filtering
+    """
     name_and_price = db.query(models.Product).filter(and_(
         and_(models.Product.price > request.min_price, models.Product.price < request.max_price),
         (models.Product.title.like(request.item_name+'%')))).order_by(asc(models.Product.id)).all()
@@ -44,7 +88,19 @@ def search_by_name_and_price(request, db: Session):
 
 
 def add_to_cart(request, db: Session, email):
-    """Function provides validations to add product to cart and increase or decrease items quantity"""
+    """
+    Function provides validations to add product to cart and increase or decrease items quantity
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    request: Schemas Object - Contains data to find products to add to cart.
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data Confirmation of products added
+    """
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -93,7 +149,18 @@ def add_to_cart(request, db: Session, email):
 
 
 def my_cart(db: Session, email):
-    """Functions returns products selected by user."""
+    """
+    Functions returns products selected by user.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch All data available in Users-Cart
+    """
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -106,7 +173,19 @@ def my_cart(db: Session, email):
 
 
 def add_shipping_info(request, db: Session, email):
-    """Functions add shipping info/ address info of user to shipping table."""
+    """
+    Functions add shipping info/ address info of user to shipping table.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    request: Schemas Object - Contains Shipping Info to be added
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Status of Address added
+    """
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -129,7 +208,18 @@ def add_shipping_info(request, db: Session, email):
 
 
 def show_shipping_info(db, email):
-    """Let user view their shipment info (as there are multiple)."""
+    """
+    Let user view their shipment info (as there are multiple).
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch All data/addresses of User
+    """
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -141,7 +231,19 @@ def show_shipping_info(db, email):
 
 
 def delete_item_from_cart(item_id: int, db: Session, email):
-    """Function helps user to remove items from cart before payout."""
+    """
+    Function helps user to remove items from cart before payout.
+    Parameters
+    ----------------------------------------------------------
+    item_id: int - Product item-ID
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Status of Product removed from cart
+    """
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -156,7 +258,19 @@ def delete_item_from_cart(item_id: int, db: Session, email):
 
 
 def order_payment(request, db, email):
-    """Payment gateway for pay for products owned."""
+    """
+    Payment gateway for pay for products owned.
+    Parameters
+    ----------------------------------------------------------
+    request: Schemas Object - Contains data about discount coupon
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch status of Email-Confirmation of order placed
+    """
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -257,7 +371,18 @@ def order_payment(request, db, email):
 
 
 def order_history(db, email):
-    """Users all Order History Till Date and its Info"""
+    """
+    Users all Order History Till Date and its Info
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch All data of Previous Orders
+    """
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -269,7 +394,19 @@ def order_history(db, email):
 
 
 def cancel_order(item_id: int, db, email):
-    """Cancel Order and RefundOrder Amount to Wallet Section."""
+    """
+    Cancel Order and RefundOrder Amount to Wallet Section.
+    Parameters
+    ----------------------------------------------------------
+    item_id: int - Order ID
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Status of order cancellation
+    """
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -295,7 +432,18 @@ def cancel_order(item_id: int, db, email):
 
 
 def view_balance(db, email):
-    """Fetch the Account Balance in Wallet."""
+    """
+    Fetch the Account Balance in Wallet.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Available balance in users wallet
+    """
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -306,5 +454,15 @@ def view_balance(db, email):
 
 
 def show_discount_coupon(db: Session):
-    """Return all discount coupon details ."""
+    """
+    Return all discount coupon details .
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch All Data of applicable coupons
+    """
     return db.query(models.DiscountCoupon).all()

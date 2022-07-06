@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from typing import List
-from fastapi_pagination import Page, add_pagination, paginate, LimitOffsetPage
+from fastapi_pagination import Page, add_pagination, paginate
 from .. import database, schemas, oauth2
 from ..repository import admin
 
@@ -22,6 +22,15 @@ get_db = database.get_db
 def all_products(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     FETCH ALL PRODUCTS AVAILABLE IN GROCERY
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    current_user: User Object - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data as per Schema-Content
     """
     return paginate(admin.all_products(db, current_user.email))
 
@@ -31,6 +40,16 @@ def add_product(request: List[schemas.ProductBase], db: Session = Depends(get_db
                 current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     ADD PRODUCTS TO SHOW IN GROCERY
+    Parameters
+    ----------------------------------------------------------
+    request: Schemas Object - Add multiple Lists of data
+    db: Database Object - Fetching Schemas Content
+    current_user: User Object - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Status of Products added or not
     """
     admin.add_product(db, request, current_user.email)
     return {'DB Status': 'Item Added Successfully'}
@@ -40,6 +59,17 @@ def add_product(request: List[schemas.ProductBase], db: Session = Depends(get_db
 def update_product(item_id: int, item: schemas.ProductBase, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     UPDATE PRODUCTS FOR GROCERY
+    Parameters
+    ----------------------------------------------------------
+    item_id: int - Product Item-ID
+    item: schemas Object - Update item desc by item ID
+    db: Database Object - Fetching Schemas Content
+    current_user: User Object - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch updates made on products
     """
     return admin.update_product(item_id, db, item, current_user.email)
 
@@ -48,6 +78,16 @@ def update_product(item_id: int, item: schemas.ProductBase, db: Session = Depend
 def delete_product(item_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     DELETE ITEMS NOT IN GROCERY
+    Parameters
+    ----------------------------------------------------------
+    item_id: int - Product Item-ID
+    db: Database Object - Fetching Schemas Content
+    current_user: User Object - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data that deleted
     """
     return admin.delete_product(item_id, db, current_user.email)
 
@@ -56,6 +96,15 @@ def delete_product(item_id: int, db: Session = Depends(get_db), current_user: sc
 def view_orders(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     FETCH ALL ORDERS PLACED BY USER AND CHECK ORDER STATUS
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    current_user: User Object - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch All Data Available in Grocery
     """
     return admin.view_orders(db, current_user.email)
 
@@ -65,6 +114,16 @@ def add_discount_coupon(request: List[schemas.DiscountCoupon], db: Session = Dep
                         current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     Admin adds Discount Coupon and its records
+    Parameters
+    ----------------------------------------------------------
+    request: schemas Object - Add multiple Discount coupons'
+    db: Database Object - Fetching Schemas Content
+    current_user: User Object - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Status of Coupons
     """
     return admin.discount_coupon(db, request, current_user.email)
 
@@ -73,6 +132,15 @@ def add_discount_coupon(request: List[schemas.DiscountCoupon], db: Session = Dep
 def show_discount_coupon(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     Get All the Discount Coupons Visible.
+    Parameters
+    ----------------------------------------------------------
+    db: Database Object - Fetching Schemas Content
+    current_user: User Object - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Data of all applicable coupons
     """
     return admin.show_discount_coupon(db, current_user.email)
 

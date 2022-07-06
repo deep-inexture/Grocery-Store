@@ -13,6 +13,16 @@ Email Sending Background Processes and Information via smtplib and email.
 def send_email(subject, to, text):
     """
     Function Call when Email process execution takes place.
+    Parameters
+    ----------------------------------------------------------
+    subject: str - Mail Subject
+    to: str - List of Recipients
+    text: str - Mail Body Message
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: Mail object - Mail Sent or not
     """
     try:
         load_dotenv()
