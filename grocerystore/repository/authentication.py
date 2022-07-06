@@ -51,7 +51,7 @@ def register(request, db: Session):
     db.commit()
     db.refresh(user_wallet)
 
-    return new_user
+    return messages.json_status_response(200, "User Registered Successfully")
 
 
 def login(request, db: Session):
@@ -128,7 +128,7 @@ def forgot_password(request, db: Session):
 
     """Sending Email to User"""
     emailUtil.send_email(subject, recipient, message)
-    return {"message": "We have send an Email, to reset your Password."}
+    return messages.json_status_response(200, "We have send an Email, to reset your Password.")
 
 
 def reset_password(reset_token, request, db: Session):
@@ -162,4 +162,4 @@ def reset_password(reset_token, request, db: Session):
     db.delete(delete_token)
 
     db.commit()
-    return {"message": "Your Password has been Successfully Reset."}
+    return messages.json_status_response(200, "Your Password has been Successfully Reset.")

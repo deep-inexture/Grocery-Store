@@ -145,7 +145,7 @@ def add_to_cart(request, db: Session, email):
     db.add(cart_item)
     db.commit()
     db.refresh(cart_item)
-    return {"Status": "Item Added to your Cart"}
+    return messages.json_status_response(200, "Items Successfully Added to Cart")
 
 
 def my_cart(db: Session, email):
@@ -204,7 +204,7 @@ def add_shipping_info(request, db: Session, email):
     db.add(new_address)
     db.commit()
     db.refresh(new_address)
-    return new_address
+    return messages.json_status_response(200, "New Shipping Address Added Successfully.")
 
 
 def show_shipping_info(db, email):
@@ -254,7 +254,7 @@ def delete_item_from_cart(item_id: int, db: Session, email):
     item_to_be_deleted = getattr(delete_item, "product_name")
     db.delete(delete_item)
     db.commit()
-    return {f"Product {item_to_be_deleted}": "Deleted Successfully"}
+    return messages.json_status_response(200, "Item Deleted Successfully!")
 
 
 def order_payment(request, db, email):
@@ -367,7 +367,7 @@ def order_payment(request, db, email):
     """Sending Email to User"""
     emailUtil.send_email(subject, recipient, message)
 
-    return {"message": "Please Find your Invoice on your email."}
+    return messages.json_status_response(200, "Please Find your Invoice on your email.")
 
 
 def order_history(db, email):
@@ -424,11 +424,7 @@ def cancel_order(item_id: int, db, email):
 
     db.commit()
 
-    return {
-        "Order-ID": f"Order with ID: {getattr(my_order, 'description')} has been Cancelled.",
-        "Amount": f"Amount of Rs.{getattr(my_wallet, 'acc_balance')} has been Refunded",
-        "message": f"Amount will be Refunded to your Wallet. 10% Cancellation Charges are applied."
-    }
+    return messages.json_status_response(200, "Amount will be Refunded to your Wallet. 10% Cancellation Charges are applied.")
 
 
 def view_balance(db, email):

@@ -78,7 +78,7 @@ def add_product(db: Session, request: List[schemas.ProductBase], email):
         db.add(new_item)
 
     db.commit()
-    return {'status': 'Done'}
+    return messages.json_status_response(200, "Items Added to the Grocery Store")
 
 
 def update_product(item_id: int, db: Session, item: schemas.ProductBase, email):
@@ -120,11 +120,7 @@ def update_product(item_id: int, db: Session, item: schemas.ProductBase, email):
     check_item_id.quantity = item.quantity
 
     db.commit()
-    return {f"Product Image =       {image_file}": f"changed to {check_item_id.image_file}",
-            f"Product Title =       {title}": f"changed to {check_item_id.title}",
-            f"Product Description = {description}": f"changed to {check_item_id.description}",
-            f"Product Price =       {price}": f"changed to {check_item_id.price}",
-            f"Product Quantity =    {quantity}": f"changed to {check_item_id.quantity}"}
+    return messages.json_status_response(200, "Items Updated Successfully.")
 
 
 def delete_product(item_id: int, db: Session, email):
@@ -151,7 +147,7 @@ def delete_product(item_id: int, db: Session, email):
     title = getattr(items_found, 'title')
     db.delete(delete_item)
     db.commit()
-    return {f"Product {title}": "Deleted Successfully"}
+    return messages.json_status_response(200, "Item Deleted from the Grocery Store")
 
 
 def view_orders(db: Session, email):
@@ -201,7 +197,7 @@ def discount_coupon(db: Session, request: List[schemas.DiscountCoupon], email):
         db.add(new_coupon)
 
     db.commit()
-    return {'status': 'Coupons Added Successfully'}
+    return messages.json_status_response(200, "Coupons Added Successfully")
 
 
 def show_discount_coupon(db: Session, email):
