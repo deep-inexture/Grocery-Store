@@ -1,12 +1,10 @@
-import datetime
-import os
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from sqlalchemy import and_, func, desc, asc
-import stripe
+from sqlalchemy import and_, desc, asc
 from dotenv import load_dotenv
 from .. import models
 from ..repository import admin, messages, emailFormat, emailUtil
+from ..utils import stripe_gateway, order_placing_query
 
 load_dotenv()
 
@@ -251,7 +249,7 @@ def delete_item_from_cart(item_id: int, db: Session, email):
     delete_item = db.query(models.MyCart).filter(and_(models.MyCart.user_id == user_id[0]), models.MyCart.product_id == item_id).first()
     if not delete_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.RECORD_NOT_FOUND)
-    item_to_be_deleted = getattr(delete_item, "product_name")
+
     db.delete(delete_item)
     db.commit()
     return messages.json_status_response(200, "Item Deleted Successfully!")
@@ -271,103 +269,70 @@ def order_payment(request, db, email):
     ----------------------------------------------------------
     response: json object - Fetch status of Email-Confirmation of order placed
     """
+
+    # background_tasks = BackgroundTasks()
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
     user_id = db.query(models.User.id).filter(models.User.email == email).first()
 
     """Check User has Items in their Cart before Proceed."""
-    check_cart_existence = db.query(models.MyCart).filter(models.MyCart.user_id == user_id[0]).all()
-    if not check_cart_existence:
-        raise HTTPException(status_code=404, detail=messages.CART_EMPTY_404)
+    check_cart_existence = order_placing_query.check_cart(db, user_id)
 
     """Check User has added their Shipping Information."""
-    shipping_info = db.query(models.ShippingInfo).filter(models.ShippingInfo.user_id == user_id[0]).first()
-    if not shipping_info:
-        raise HTTPException(status_code=404, detail=messages.SHIPPING_UNAVAILABLE_404)
+    shipping_info = order_placing_query.shipment_info(request, db, user_id)
 
     """Fetch the Coupon Code and verify"""
-    coupon_code = db.query(models.DiscountCoupon).filter(models.DiscountCoupon.coupon_code == request.coupon_code).first()
-
-    if request.coupon_code == "":
-        coupon_discount = 0
-    elif not coupon_code:
-        raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
-    else:
-        if str(getattr(coupon_code, "valid_till")) < datetime.date.today().strftime("%Y-%m-%d"):
-            raise HTTPException(status_code=401, detail=messages.COUPON_EXPIRED_404)
-        coupon_discount = getattr(coupon_code, "discount_percentage")
-        coupon_code.times_used = getattr(coupon_code, "times_used") + 1
+    coupon_discount, coupon_using = order_placing_query.coupon_code_validation(db, user_id, request)
 
     """Fetch the Total Amount Payable By User"""
-    total_amount = db.query(func.sum(models.MyCart.total)).filter(models.MyCart.user_id == user_id[0]).all()
-    total_amount = (total_amount[0][0] - ((total_amount[0][0]*coupon_discount)/100))
+    total_amount = order_placing_query.order_amount(request, db, user_id, coupon_discount)
+
+    """
+    Generate Invoice for User Orders
+    Using Stripe Payment Gateway
+    """
+    invoice = stripe_gateway.strip_payment_gateway(total_amount, email)
 
     """Check Quantity of Product in Grocery and decrease if Order is purchased By User"""
-    product_details = db.query(models.Product).filter(and_(models.MyCart.user_id == user_id[0], models.Product.id == models.MyCart.product_id)).all()
+    product_details = db.query(models.Product).filter(
+        and_(models.MyCart.user_id == user_id[0], models.Product.id == models.MyCart.product_id)).all()
     for i, j in zip(product_details, check_cart_existence):
         i.quantity = (getattr(i, "quantity") - getattr(j, "product_quantity"))
 
-    """Generate Invoice for User Orders"""
-    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
-    invoice = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price_data': {
-                        'currency': 'inr',
-                        'product_data': {
-                            'name': 'cart',
-                        },
-                        'unit_amount': int(total_amount * 100),
-                    },
-                    'quantity': len(check_cart_existence),
-                }],
-                mode='payment',
-                success_url='http://127.0.0.1:8000'+'/templates/success.html',
-                cancel_url='http://127.0.0.1:8000'+'/templates/cancel.html',
-            )
-    card_obj = stripe.PaymentMethod.create(
-        type="card",
-        card={
-            "number": "4242424242424242",
-            "exp_month": 7,
-            "exp_year": 2023,
-            "cvc": "123",
-        },
-    )
-    customer = stripe.Customer.create(
-        email=email, payment_method=card_obj.id
-    )
-    strp = stripe.PaymentIntent.create(
-        customer=customer.id,
-        payment_method=card_obj.id,
-        currency="inr",
-        amount=int(total_amount * 100),
-    )
+    for prod_name in check_cart_existence:
+        new_order = models.OrderDetails(
+            user_id=user_id[0],
+            shipping_id=getattr(shipping_info, "id"),
+            description=invoice['id'],
+            payment_id=invoice['payment_intent'],
+            product_name=getattr(prod_name, "product_name"),
+            total_amount=getattr(prod_name, "total"),
+            coupon_used=coupon_using
+        )
+        db.add(new_order)
 
-    new_order = models.OrderDetails(
-        user_id=user_id[0],
-        shipping_id=getattr(shipping_info, "id"),
-        description=invoice['id'],
-        total_amount=total_amount,
-        payment_status="completed"
-    )
-
-    db.add(new_order)
     db.query(models.MyCart).filter(models.MyCart.user_id == user_id[0]).delete()
-
     db.commit()
-    db.refresh(new_order)
 
     """Formatting Email"""
     subject, recipient, message = emailFormat.invoiceFormat(email, invoice, shipping_info,
-                                                            len(check_cart_existence),
-                                                            coupon_discount)
+                                                            check_cart_existence, coupon_discount,
+                                                            total_amount)
 
     """Sending Email to User"""
     emailUtil.send_email(subject, recipient, message)
 
     return messages.json_status_response(200, "Please Find your Invoice on your email.")
+
+
+def webhook_received(db, payment_intent, payment_status):
+    update_payment_status = db.query(models.OrderDetails).filter(models.OrderDetails.payment_id == payment_intent).all()
+    for i in update_payment_status:
+        i.payment_status = payment_status
+
+    db.commit()
+    return {"Status": "Status Received"}
 
 
 def order_history(db, email):
@@ -393,7 +358,7 @@ def order_history(db, email):
     return history
 
 
-def cancel_order(item_id: int, db, email):
+def return_item(item_id: int, db, email):
     """
     Cancel Order and RefundOrder Amount to Wallet Section.
     Parameters
@@ -412,10 +377,12 @@ def cancel_order(item_id: int, db, email):
 
     user_id = db.query(models.User.id).filter(models.User.email == email).first()
     my_order = db.query(models.OrderDetails).filter(and_(models.OrderDetails.id == item_id,
-                                                         models.OrderDetails.user_id == user_id[0])).first()
+                                                         models.OrderDetails.user_id == user_id[0],
+                                                         models.OrderDetails.payment_status != "refunded")).first()
     if not my_order:
         raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
     my_order.payment_status = "refunded"
+    my_order.order_status = "returned"
 
     refund_amount = getattr(my_order, "total_amount")
     refund_amount -= (refund_amount*0.1)
@@ -425,6 +392,69 @@ def cancel_order(item_id: int, db, email):
     db.commit()
 
     return messages.json_status_response(200, "Amount will be Refunded to your Wallet. 10% Cancellation Charges are applied.")
+
+
+def cancel_order(order_id: str, db, email):
+    """
+    Cancel Order and RefundOrder Amount to Wallet Section.
+    Parameters
+    ----------------------------------------------------------
+    order_id: str - Order ID
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Status of order cancellation
+    """
+    if admin.is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
+    user_id = db.query(models.User.id).filter(models.User.email == email).first()
+    my_order = db.query(models.OrderDetails).filter(and_(models.OrderDetails.description == order_id,
+                                                         models.OrderDetails.user_id == user_id[0],
+                                                         models.OrderDetails.payment_status != "refunded")).all()
+    if not my_order:
+        raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
+    refund_amount = 0
+    for i in my_order:
+        refund_amount += getattr(i, "total_amount")
+        i.payment_status = "refunded"
+        i.order_status = "returned"
+
+    refund_amount -= (refund_amount * 0.1)
+    my_wallet = db.query(models.MyWallet).filter(models.MyWallet.user_id == user_id[0]).first()
+    my_wallet.acc_balance = (getattr(my_wallet, "acc_balance") + refund_amount)
+
+    db.commit()
+
+    return messages.json_status_response(200, "Amount will be Refunded to your Wallet. 10% Cancellation Charges are applied.")
+
+
+def track_order_status(request, db, email):
+    """
+    Cancel Order and RefundOrder Amount to Wallet Section.
+    Parameters
+    ----------------------------------------------------------
+    request: schemas Object - Order ID
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Status of order cancellation
+    """
+    if admin.is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
+    check_order_id = db.query(models.OrderDetails).filter(models.OrderDetails.description == request.order_tracking_id).all()
+
+    if not check_order_id:
+        raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
+
+    return check_order_id
 
 
 def view_balance(db, email):

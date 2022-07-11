@@ -39,7 +39,7 @@ def forgotPasswordFormat(email, reset_code):
     return subject, recipient, message
 
 
-def invoiceFormat(email, invoice, shipping_info, items, discount):
+def invoiceFormat(email, invoice, shipping_info, items, discount, amount):
     """
     Email Structure to Send Product Invoice to User
     Parameters
@@ -49,6 +49,7 @@ def invoiceFormat(email, invoice, shipping_info, items, discount):
     shipping_info: dict - User Address Info
     items: int - Total no of Items Ordered
     discount: int - Total applicable Discount
+    amount: float - Total Payable Amount
     ----------------------------------------------------------
 
     Returns
@@ -57,47 +58,60 @@ def invoiceFormat(email, invoice, shipping_info, items, discount):
     """
     subject = "Grocery Store - Order Invoice"
     recipient = email
-    message = """
+    message = f"""
         <!DOCTYPE html>
         <html>
         <title>Invoice</title>
         <body>
-        <h3>Hello, {0:}</h3>
+        <h3>Hello, {email}:</h3>
         <hr>
         INVOICE<br>
         <hr>
         <table border="0">
         <tr>
             <td>ORDER ID:                   </td>
-            <td>{1}</td>
+            <td>{invoice['id']}</td>
+            <td></td>
         </tr>
         <tr>
-            <td>TOTAL ITEMS:                </td>
-            <td>{9}</td>
-        </tr>
+            <td>ITEMS:                </td>
+            <td>"""
+    for i in items:
+        item_name = getattr(i, "product_name")
+        message = message + item_name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+        item_quantity = getattr(i, "product_quantity")
+        message = message + str(item_quantity) + " Nos.<br>"
+
+    message = message + """</td></tr>
         <tr>
             <td>ORDER AMOUNT:               </td>
             <td>{2}</td>
+            <td></td>
         </tr>
         <tr>
             <td>DISCOUNT APPLIED:           </td>
-            <td>{10}%</td>
+            <td>{9}%</td>
+            <td></td>
         </tr>
         <tr>
             <td>ORDER SHIPPING INFO:        </td>
             <td>{5}, {6}, {7}</td>
+            <td></td>
         </tr>
         <tr>
             <td>PHONE NO.:                  </td>
             <td>{8}</td>
+            <td></td>
         </tr>
         <tr>
             <td>ORDER STATUS:               </td>
             <td>{3}</td>
+            <td></td>
         </tr>
         <tr>
             <td>PAYMENT LINK:               </td>
-            <td>{11}</td>
+            <td>{10}</td>
+            <td></td>
         </tr>
         </table>
         <hr>
@@ -107,7 +121,7 @@ def invoiceFormat(email, invoice, shipping_info, items, discount):
         Grocery Store
         </body>
         </html>
-        """.format(email, invoice['id'], (invoice['amount_total']/100), invoice['payment_status'], 'Thank You! Please Visit Again...',
+        """.format(email, invoice['id'], amount, invoice['payment_status'], 'Thank You! Please Visit Again...',
                    getattr(shipping_info, "address"), getattr(shipping_info, "city"), getattr(shipping_info, "state"),
-                   getattr(shipping_info, "phone_no"), items, discount, invoice['url'])
+                   getattr(shipping_info, "phone_no"), discount, invoice['url'])
     return subject, recipient, message

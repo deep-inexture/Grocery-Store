@@ -14,6 +14,7 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     image_file = Column(String(255), nullable=True)
+    product_type = Column(String(255), nullable=True)
     title = Column(String(255), nullable=False)
     description = Column(String(255), nullable=False, unique=True)
     price = Column(Float, nullable=False)
@@ -85,8 +86,12 @@ class OrderDetails(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     shipping_id = Column(Integer, ForeignKey('users_shipping_info.id'))
     description = Column(String(255), nullable=False)
+    payment_id = Column(String(50), nullable=True)
+    product_name = Column(String(255), nullable=False)
     total_amount = Column(Float, nullable=False)
     payment_status = Column(String(50), default="pending")
+    order_status = Column(String(50), default="received")
+    coupon_used = Column(Integer, default=0)
 
     owner = relationship("User", back_populates="order_details")
 

@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request, Header
 from sqlalchemy.orm import Session
 from typing import List
 from fastapi_pagination import Page, add_pagination, paginate, LimitOffsetPage
 from .. import database, schemas, oauth2
 from ..repository import users
+import stripe
+import os
 
 """
 Users Routing structure is placed here. Pagination and other Session dependencies are made over
@@ -105,8 +107,8 @@ def delete_item_from_cart(item_id: int, db: Session = Depends(get_db), current_u
     return users.delete_item_from_cart(item_id, db, current_user.email)
 
 
-@router.post("/shipping_info", response_model=schemas.ShippingInfo)
-def add_shipping_info(request: schemas.ShippingInfo, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+@router.post("/shipping_info")
+def add_shipping_info(request: schemas.AddShippingInfo, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     Add Shipping Info like Address and other stuff
     Parameters
@@ -140,8 +142,40 @@ def show_shipping_info(db: Session = Depends(get_db), current_user: schemas.User
     return users.show_shipping_info(db, current_user.email)
 
 
+@router.post('/webhook')
+async def webhook_received(request: Request, db: Session = Depends(get_db), stripe_signature: str = Header(str)):
+    webhook_secret = os.environ.get('STRIPE_WEBHOOK_KEY')
+    data = await request.body()
+    try:
+        event = stripe.Webhook.construct_event(
+            payload=data,
+            sig_header=stripe_signature,
+            secret=webhook_secret
+        )
+        event_data = event['data']
+    except Exception as e:
+        return {"Error": str(e)}
+    event_type = event['type']
+    if event_type == 'checkout.session.completed':
+        users.webhook_received(db, event_data['object']['payment_intent'],
+                               event_data['object']['payment_status'])
+    elif event_type == 'invoice.paid':
+        print('Invoice Paid')
+    elif event_type == 'invoice.payment_failed':
+        users.webhook_received(db, event_data['object']['payment_intent'],
+                               event_data['object']['payment_status'])
+    elif event_type == 'charge.succeeded':
+        print('Charge Succeeded')
+    else:
+        print(f'Unhandled Event : {event_type}')
+
+    return {"Status": "Success"}
+
+
 @router.post("/order_payment")
-def order_payment_page(request: schemas.CheckDiscountCoupon, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+def order_payment_page(request: schemas.CheckDiscountCoupon,
+                       db: Session = Depends(get_db),
+                       current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     Get the Payment Link to pay for your Order
     Parameters
@@ -175,8 +209,8 @@ def order_history(db: Session = Depends(get_db), current_user: schemas.User = De
     return users.order_history(db, current_user.email)
 
 
-@router.delete('/cancel_order/{item_id}')
-def cancel_order(item_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+@router.delete('/return_item/{item_id}')
+def return_item(item_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     Fetch the item_id from User to cancel the order and refund amount to Wallet.
     Parameters
@@ -190,7 +224,44 @@ def cancel_order(item_id: int, db: Session = Depends(get_db), current_user: sche
     ----------------------------------------------------------
     response: json object - Fetch Status of order cancellation
     """
-    return users.cancel_order(item_id, db, current_user.email)
+    return users.return_item(item_id, db, current_user.email)
+
+
+@router.delete('/cancel_order/{order_id}')
+def cancel_order(order_id: str, db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Fetch the item_id from User to cancel the order and refund amount to Wallet.
+    Parameters
+    ----------------------------------------------------------
+    order_id: str - Order ID
+    db: Database Object - Fetching Schemas Content
+    current_user: User Object - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Status of order cancellation
+    """
+    return users.cancel_order(order_id, db, current_user.email)
+
+
+@router.post('/track_order_status', summary="Track the Status of Items Ordered", response_model=List[schemas.TrackOrderStatus])
+def track_order_status(request: schemas.TrackingID, db: Session = Depends(get_db),
+                       current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+    Fetch the item_id from User to cancel the order and refund amount to Wallet.
+    Parameters
+    ----------------------------------------------------------
+    request: Schemas Object - Order ID received via mail.
+    db: Database Object - Fetching Schemas Content
+    current_user: User Object - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch Status of order Tracking
+    """
+    return users.track_order_status(request, db, current_user.email)
 
 
 @router.get('/view_balance', response_model=schemas.WalletBalance)

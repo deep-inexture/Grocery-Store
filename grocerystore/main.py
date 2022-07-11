@@ -43,7 +43,7 @@ app = FastAPI(
 )
 
 """Allow Static Files to use in app via mounting"""
-app.mount("/templates", StaticFiles(directory="grocerystore/templates", html = True), name="templates")
+app.mount("/templates", StaticFiles(directory="grocerystore/templates", html=True), name="templates")
 
 """Following command will create new tables if not exists in Database."""
 """Now We are using alembic migrations."""

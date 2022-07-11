@@ -11,6 +11,7 @@ Each of them can be called as per requirements in response_model in routers.
 class ProductBase(BaseModel):
     """Admin UseCase: Fields required to create/Add Products"""
     image_file: str = 'default.png'
+    product_type: str = ''
     title: str = ''
     description: str = ''
     price: float = 0
@@ -67,8 +68,21 @@ class ShowUser(ShowUserBase):
         orm_mode = True
 
 
+class AddShippingInfo(BaseModel):
+    """User UseCase: Elements required while filling Shipping info."""
+    name: str
+    phone_no: str
+    address: str
+    city: str
+    state: str
+
+    class Config:
+        orm_mode = True
+
+
 class ShippingInfo(BaseModel):
     """User UseCase: Elements required while filling Shipping info."""
+    id: int
     name: str
     phone_no: str
     address: str
@@ -141,9 +155,49 @@ class OrderDetails(BaseModel):
     user_id: int
     shipping_id: int
     description: str
+    product_name: str
     total_amount: float
     payment_status: str
+    order_status: str
     owner: ShowUserBase
+
+    class Config:
+        orm_mode = True
+
+
+class OrderStatus(BaseModel):
+    """Admin UseCase: Update the order Status for tracking purpose"""
+    order_id: int
+    order_status: str
+
+    class Config:
+        orm_mode = True
+
+
+class TrackOrderStatus(BaseModel):
+    """User UseCase: Get the order Status for tracking purpose"""
+    description: str
+    product_name: str
+    total_amount: float
+    order_status: str
+    payment_status: str
+    owner: ShowUserBase
+
+    class Config:
+        orm_mode = True
+
+
+class TrackingID(BaseModel):
+    """USer UseCase: Track the Order Status using order_id"""
+    order_tracking_id: str
+
+    class Config:
+        orm_mode = True
+
+
+class FilterOrderStatus(BaseModel):
+    """USer UseCase: Track the Order Status using order_id"""
+    order_status: str
 
     class Config:
         orm_mode = True
@@ -183,6 +237,7 @@ class ShowDiscountCoupon(BaseModel):
 class CheckDiscountCoupon(BaseModel):
     """Admin/User UseCase : Keeps Records of Discount Coupon for user to use."""
     coupon_code: Optional[str] = ""
+    shipping_id: int
 
     class Config:
         orm_mode = True

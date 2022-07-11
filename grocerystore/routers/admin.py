@@ -92,7 +92,7 @@ def delete_product(item_id: int, db: Session = Depends(get_db), current_user: sc
     return admin.delete_product(item_id, db, current_user.email)
 
 
-@router.get("/view_orders", summary="View all Order Details by each User", response_model=List[schemas.OrderDetails])
+@router.get("/view_orders", summary="View all Order Details by each User", response_model=Page[schemas.OrderDetails])
 def view_orders(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     FETCH ALL ORDERS PLACED BY USER AND CHECK ORDER STATUS
@@ -106,7 +106,45 @@ def view_orders(db: Session = Depends(get_db), current_user: schemas.User = Depe
     ----------------------------------------------------------
     response: json object - Fetch All Data Available in Grocery
     """
-    return admin.view_orders(db, current_user.email)
+    return paginate(admin.view_orders(db, current_user.email))
+
+
+@router.post("/filter_order_status", summary="Filter the order Status By Order Status", response_model=Page[schemas.OrderDetails])
+def filter_order_status(request: schemas.FilterOrderStatus, db: Session = Depends(get_db),
+                        current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+        Admin Filters all Order by its status
+        Parameters
+        ----------------------------------------------------------
+        request: schemas Object - Update Order Status of user items
+        db: Database Object - Fetching Schemas Content
+        current_user: User Object - Current Logged-In User Session
+        ----------------------------------------------------------
+
+        Returns
+        ----------------------------------------------------------
+        response: json object - Updates Status as per its tracking flow.
+        """
+    return paginate(admin.filter_order_status(request, db, current_user.email))
+
+
+@router.put("/update_order_status", summary="Update the order Status for tracking purpose", status_code=status.HTTP_200_OK)
+def update_order_status(request: schemas.OrderStatus, db: Session = Depends(get_db),
+                        current_user: schemas.User = Depends(oauth2.get_current_user)):
+    """
+        Admin Updates Order Status as per its tracking system
+        Parameters
+        ----------------------------------------------------------
+        request: schemas Object - Update Order Status of user items
+        db: Database Object - Fetching Schemas Content
+        current_user: User Object - Current Logged-In User Session
+        ----------------------------------------------------------
+
+        Returns
+        ----------------------------------------------------------
+        response: json object - Updates Status as per its tracking flow.
+        """
+    return admin.update_order_status(request, db, current_user.email)
 
 
 @router.post("/add_discount_coupon", summary="Add Discount Coupons for Users", status_code=status.HTTP_201_CREATED)
