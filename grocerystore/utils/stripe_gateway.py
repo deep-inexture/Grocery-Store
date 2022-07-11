@@ -22,8 +22,8 @@ def strip_payment_gateway(total_amount, email):
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url='http://127.0.0.1:8000'+'/templates/success.html',
-                cancel_url='http://127.0.0.1:8000'+'/templates/cancel.html',
+                success_url=os.environ.get('HOST')+'/templates/success.html',
+                cancel_url=os.environ.get('HOST')+'/templates/cancel.html',
             )
     card_obj = stripe.PaymentMethod.create(
         type="card",
