@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import asc
+from sqlalchemy import asc, desc
 from typing import List
 import datetime
 from .. import models, schemas
@@ -70,6 +70,7 @@ def add_product(db: Session, request: List[schemas.ProductBase], email):
     for items in request:
         new_item = models.Product(
             image_file=items.image_file,
+            product_type=items.product_type,
             title=items.title,
             description=items.description,
             price=items.price,
@@ -114,6 +115,7 @@ def update_product(item_id: int, db: Session, item: schemas.ProductBase, email):
         raise HTTPException(status_code=302, detail=messages.NO_CHANGES_302)
 
     check_item_id.image_file = item.image_file
+    check_item_id.product_type = item.product_type
     check_item_id.title = item.title
     check_item_id.description = item.description
     check_item_id.price = item.price
@@ -143,8 +145,7 @@ def delete_product(item_id: int, db: Session, email):
     delete_item = db.query(models.Product).filter(models.Product.id == item_id).first()
     if not delete_item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=messages.Product_Not_Found_404(item_id))
-    items_found = fetch_data(item_id, db)
-    title = getattr(items_found, 'title')
+
     db.delete(delete_item)
     db.commit()
     return messages.json_status_response(200, "Item Deleted from the Grocery Store")
@@ -166,7 +167,62 @@ def view_orders(db: Session, email):
     if not is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
-    return db.query(models.OrderDetails).all()
+    return db.query(models.OrderDetails).order_by(desc(models.OrderDetails.id)).all()
+
+
+def filter_order_status(request, db: Session, email):
+    """
+    Admin Filters all Order by its status
+    Parameters
+    ----------------------------------------------------------
+    request: schemas Object - Update Order Status of user items
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Fetch All Data Available in Grocery
+    """
+    if not is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
+    filtered_orders = db.query(models.OrderDetails).filter(models.OrderDetails.order_status == request.order_status).all()
+    if not filtered_orders:
+        raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
+    return filtered_orders
+
+
+def update_order_status(request, db, email):
+    """
+    Admin adds Discount Coupon and its records
+    Parameters
+    ----------------------------------------------------------
+    request: schemas Object - Update Order Status of user items
+    db: Database Object - Fetching Schemas Content
+    email: str - Current Logged-In User Session
+    ----------------------------------------------------------
+
+    Returns
+    ----------------------------------------------------------
+    response: json object - Updates Status as per its tracking flow.
+    """
+    if not is_admin(email, db):
+        raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
+
+    status_priority = ['received', 'packed', 'shipped', 'delivered', 'returned']
+    find_order = db.query(models.OrderDetails).filter(models.OrderDetails.id == request.order_id).first()
+    if not find_order:
+        raise HTTPException(status_code=404, detail=messages.RECORD_NOT_FOUND)
+
+    current_status = getattr(find_order, "order_status")
+    if status_priority.index(request.order_status) <= status_priority.index(current_status):
+        raise HTTPException(status_code=401, detail=messages.ORDER_PRIORITY_401)
+
+    find_order.order_status = request.order_status
+    db.commit()
+
+    return messages.json_status_response(200, "Order Status Updated Successfully.")
 
 
 def discount_coupon(db: Session, request: List[schemas.DiscountCoupon], email):
