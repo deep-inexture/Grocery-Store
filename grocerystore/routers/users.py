@@ -143,7 +143,7 @@ def show_shipping_info(db: Session = Depends(get_db), current_user: schemas.User
 
 
 @router.post('/webhook')
-async def webhook_received(request: Request, db: Session = Depends(get_db), stripe_signature: str = Header(str)):
+async def webhook_received(request: Request, db: Session = Depends(get_db), stripe_signature: str = Header(None)):
     webhook_secret = os.environ.get('STRIPE_WEBHOOK_KEY')
     data = await request.body()
     try:
