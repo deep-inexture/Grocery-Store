@@ -255,7 +255,7 @@ def delete_item_from_cart(item_id: int, db: Session, email):
     return messages.json_status_response(200, "Item Deleted Successfully!")
 
 
-def order_payment(request, db, email):
+def order_payment(request, db, email, background_tasks):
     """
     Payment gateway for pay for products owned.
     Parameters
@@ -263,6 +263,7 @@ def order_payment(request, db, email):
     request: Schemas Object - Contains data about discount coupon
     db: Database Object - Fetching Schemas Content
     email: str - Current Logged-In User Session
+    background_tasks: BackgroundTasks - Complete Task in Background
     ----------------------------------------------------------
 
     Returns
@@ -270,7 +271,6 @@ def order_payment(request, db, email):
     response: json object - Fetch status of Email-Confirmation of order placed
     """
 
-    # background_tasks = BackgroundTasks()
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -321,8 +321,7 @@ def order_payment(request, db, email):
                                                             total_amount)
 
     """Sending Email to User"""
-    emailUtil.send_email(subject, recipient, message)
-
+    background_tasks.add_task(emailUtil.send_email, subject, recipient, message)
     return messages.json_status_response(200, "Please Find your Invoice on your email.")
 
 
