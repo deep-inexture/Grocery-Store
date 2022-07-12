@@ -3,5 +3,4 @@
 /grocerystore/repository/__pycache__
 /grocerystore/routers/__pycache__
 .idea
-/grocerystore/testing
 /stripe_1.10.3_linux_x86_64
