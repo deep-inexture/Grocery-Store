@@ -2,14 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from .. import schemas, database, oauth2
 from ..repository import authentication
-from dotenv import load_dotenv
 
 """
 It includes Authentication routers for both User & Admin. First Point Router Before Handing any other
 routing processes.
 """
-
-load_dotenv()
 
 router = APIRouter(
     tags=["Authentication"]

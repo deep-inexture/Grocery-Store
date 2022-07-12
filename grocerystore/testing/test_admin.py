@@ -1,7 +1,4 @@
 import json
-from dotenv import load_dotenv
-
-load_dotenv()
 
 """
 # Below are Show Products Test Cases;
@@ -40,8 +37,8 @@ test_add_product_unauthorized_401: Except Admin. No Permission   : 401
 def test_add_product_201(client, admin_token_header):
     data = [{
         "image_file": "default.png",
-        "title": "TestTitle-7",
-        "description": "TestDescription-7",
+        "title": "TestTitle-8",
+        "description": "TestDescription-8",
         "price": 100,
         "quantity": 100
     }]
@@ -79,8 +76,8 @@ test_update_product_no_changes_302: No Updates Detected          : 302
 def test_update_product_200(client, admin_token_header):
     data = {
         "image_file": "default.png",
-        "title": "TestTitle-7-updated",
-        "description": "TestDescription-7-updated",
+        "title": "TestTitle-8-updated",
+        "description": "TestDescription-8-updated",
         "price": 200,
         "quantity": 200
     }
@@ -92,8 +89,8 @@ def test_update_product_200(client, admin_token_header):
 def test_update_product_unauthorized_401(client):
     data = {
         "image_file": "default.png",
-        "title": "TestTitle-7-updated",
-        "description": "TestDescription-7-updated",
+        "title": "TestTitle-8-updated",
+        "description": "TestDescription-8-updated",
         "price": 200,
         "quantity": 200
     }
