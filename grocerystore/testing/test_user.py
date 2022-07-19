@@ -28,15 +28,15 @@ test_search_products_not_found_404: No Products with suh name    : 404
 
 def test_search_products_200(client):
     data = {
-        "item_name": "TestTitle-5",
+        "item_name": "TestTitle-1",
         "max_price": 1000,
         "min_price": 0
     }
     response = client.post('/user/search_products', json.dumps(data))
     assert response.status_code == 200
     assert response.json()[0]["image_file"] == "default.png"
-    assert response.json()[0]["title"] == "TestTitle-5"
-    assert response.json()[0]["description"] == "TestDescription-5"
+    assert response.json()[0]["title"] == "TestTitle-1"
+    assert response.json()[0]["description"] == "TestDescription-1"
     assert response.json()[0]["price"] == 100
     assert response.json()[0]["quantity"] == 100
 
@@ -67,42 +67,48 @@ test_add_to_cart_item_updated_200: Item quantity updated         : 200
 """
 
 
+def test_my_cart_no_products_404(client, token_header):
+    response = client.get('/user/view_my_cart', headers={"Authorization": token_header})
+    assert response.status_code == 404
+    assert "No Products in Cart."
+
+
 def test_add_to_cart_200(client, token_header):
     data = {
-        "item_id": 6,
-        "item_quantity": 10
-    }
-    response = client.post('/user/add_to_cart', json.dumps(data), headers=token_header)
-    assert response.status_code == 200
-    assert response.json()["Status"] == "Item Added to your Cart"
-
-
-def test_add_to_cart_not_authenticated_401(client, token_header):
-    data = {
-        "item_id": 3,
+        "item_id": 1,
         "item_quantity": 1
     }
-    response = client.get('/user/add_to_cart', json.dumps(data))
+    response = client.post('/user/add_to_cart', json.dumps(data), headers={"Authorization": token_header})
+    assert response.status_code == 200
+    assert response.json()["message"] == "Items Successfully Added to Cart"
+
+
+def test_add_to_cart_not_authenticated_401(client):
+    data = {
+        "item_id": 1,
+        "item_quantity": 1
+    }
+    response = client.post('/user/add_to_cart', json.dumps(data), headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "Not Authenticated!"
 
 
 def test_add_to_cart_out_of_stock_404(client, token_header):
     data = {
-        "item_id": 3,
+        "item_id": 2,
         "item_quantity": 200
     }
-    response = client.post('/user/add_to_cart', json.dumps(data), headers=token_header)
+    response = client.post('/user/add_to_cart', json.dumps(data), headers={"Authorization": token_header})
     assert response.status_code == 404
     assert "Out of Stock"
 
 
 def test_add_to_cart_stock_unavailable_404(client, token_header):
     data = {
-        "item_id": 3,
-        "item_quantity": 96
+        "item_id": 1,
+        "item_quantity": 101
     }
-    response = client.post('/user/add_to_cart', json.dumps(data), headers=token_header)
+    response = client.post('/user/add_to_cart', json.dumps(data), headers={"Authorization": token_header})
     assert response.status_code == 404
     assert "Stock Limit Exceeded for this item."
 
@@ -112,17 +118,17 @@ def test_add_to_cart_item_not_found_404(client, token_header):
         "item_id": 100,
         "item_quantity": 1
     }
-    response = client.post('/user/add_to_cart', json.dumps(data), headers=token_header)
+    response = client.post('/user/add_to_cart', json.dumps(data), headers={"Authorization": token_header})
     assert response.status_code == 404
     assert "Item Not found!"
 
 
 def test_add_to_cart_item_updated_200(client, token_header):
     data = {
-        "item_id": 3,
+        "item_id": 1,
         "item_quantity": 1
     }
-    response = client.post('/user/add_to_cart', json.dumps(data), headers=token_header)
+    response = client.post('/user/add_to_cart', json.dumps(data), headers={"Authorization": token_header})
     assert response.status_code == 200
     assert response.json()["Status"] == "Item Updated Successfully..."
 
@@ -140,23 +146,17 @@ test_my_cart_no_products_404: No products Found                  : 404
 
 
 def test_my_cart_200(client, token_header):
-    response = client.get('/user/view_my_cart', headers=token_header)
+    response = client.get('/user/view_my_cart', headers={"Authorization": token_header})
     assert response.status_code == 200
-    assert response.json()[0]["product_name"] == "TestTilte-6"
-    assert response.json()[0]["product_quantity"] == 10
-    assert response.json()[0]["total"] == 1000
+    assert response.json()[0]["product_name"] == "TestTitle-1"
+    assert response.json()[0]["product_quantity"] == 2
+    assert response.json()[0]["total"] == 200
 
 
-def test_my_cart_not_authenticated_401(client, token_header):
-    response = client.get('/user/view_my_cart')
+def test_my_cart_not_authenticated_401(client):
+    response = client.get('/user/view_my_cart', headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "Not Authenticated!"
-
-
-def test_my_cart_no_products_404(client, token_header):
-    response = client.get('/user/view_my_cart', headers=token_header)
-    assert response.status_code == 404
-    assert "No Products in Cart."
 
 
 """++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"""
@@ -172,19 +172,19 @@ test_delete_item_from_cart_item_not_found_404: No product Found  : 404
 
 
 def test_delete_item_from_cart_200(client, token_header):
-    response = client.delete('/user/delete_item_from_cart/6', headers=token_header)
+    response = client.delete('/user/delete_item_from_cart/1', headers={"Authorization": token_header})
     assert response.status_code == 200
     assert "Item Deleted Successfully"
 
 
-def test_delete_item_from_cart_not_authenticated_401(client, token_header):
-    response = client.delete('/user/delete_item_from_cart/6')
+def test_delete_item_from_cart_not_authenticated_401(client):
+    response = client.delete('/user/delete_item_from_cart/1', headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "Not Authenticated!"
 
 
 def test_delete_item_from_cart_item_not_found_404(client, token_header):
-    response = client.delete('/user/delete_item_from_cart/100', headers=token_header)
+    response = client.delete('/user/delete_item_from_cart/100', headers={"Authorization": token_header})
     assert response.status_code == 404
     assert "Record Not Found"
 
@@ -201,14 +201,7 @@ test_add_shipping_info_invalid_phone_no_401: Length Validation   : 401
 """
 
 
-def test_show_shipping_info_200(client, token_header):
-    response = client.get('/user/show_shipping_info', headers=token_header)
-    assert response.status_code == 200
-    assert response.json()[0]["name"] == "TestUser-10"
-    assert response.json()[0]["phone_no"] == "1234567890"
-
-
-def test_add_shipping_info_not_authenticated_401(client, token_header):
+def test_add_shipping_info_not_authenticated_401(client):
     data = {
         "name": "TestUser-10",
         "phone_no": "1234567890",
@@ -216,7 +209,7 @@ def test_add_shipping_info_not_authenticated_401(client, token_header):
         "city": "Test City",
         "state": "Test State"
     }
-    response = client.post('/user/shipping_info', json.dumps(data))
+    response = client.post('/user/shipping_info', json.dumps(data), headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "Not Authenticated"
 
@@ -229,7 +222,7 @@ def test_add_shipping_info_invalid_phone_no_401(client, token_header):
         "city": "Test City",
         "state": "Test State"
     }
-    response = client.post('/user/shipping_info', json.dumps(data), headers=token_header)
+    response = client.post('/user/shipping_info', json.dumps(data), headers={"Authorization": token_header})
     assert response.status_code == 401
     assert "Invalid Phone Number."
 
@@ -246,31 +239,45 @@ test_show_shipping_info_not_found_404: No Address Found          : 404
 """
 
 
+def test_show_shipping_info_not_found_404(client, token_header):
+    response = client.get('/user/show_shipping_info', headers={"Authorization": token_header})
+    assert response.status_code == 404
+    assert "Shipping Address Not Found"
+
+
+def test_order_payment_page_address_not_found_404(client, token_header):
+    data = {
+        "coupon_code": "",
+        "shipping_id": 1
+    }
+    response = client.post('/user/order_payment', json.dumps(data), headers={"Authorization": token_header})
+    assert response.status_code == 404
+    assert "Shipping Address Not Found"
+
+
 def test_add_shipping_info_200(client, token_header):
     data = {
-        "name": "TestUser-10",
+        "name": "TestUser-11",
         "phone_no": "1234567890",
         "address": "Test Address",
         "city": "Test City",
         "state": "Test State"
     }
-    response = client.post('/user/shipping_info', json.dumps(data), headers=token_header)
+    response = client.post('/user/shipping_info', json.dumps(data), headers={"Authorization": token_header})
     assert response.status_code == 200
-    assert response.json()["name"] == "TestUser-8"
-    assert response.json()["address"] == "Test Address"
-    assert response.json()["phone_no"] == "1234567890"
+    assert response.json()["message"] == "New Shipping Address Added Successfully."
 
 
-def test_show_shipping_info_not_authenticated_401(client, token_header):
-    response = client.get('/user/show_shipping_info')
+def test_show_shipping_info_200(client, token_header):
+    response = client.get('/user/show_shipping_info', headers={"Authorization": token_header})
+    assert response.status_code == 200
+    assert response.json()[0]["name"] == "TestUser-1"
+
+
+def test_show_shipping_info_not_authenticated_401(client):
+    response = client.get('/user/show_shipping_info', headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "Not Authenticated!"
-
-
-def test_show_shipping_info_not_found_404(client, token_header):
-    response = client.get('/user/show_shipping_info', headers=token_header)
-    assert response.status_code == 404
-    assert "Shipping Address Not Found"
 
 
 """++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"""
@@ -289,60 +296,56 @@ test_order_payment_page_incorrect_code: Invalid Coupon Code      : 404
 
 
 def test_order_history_no_order_history_404(client, token_header):
-    response = client.get('/user/order_history', headers=token_header)
+    response = client.get('/user/order_history', headers={"Authorization": token_header})
     assert response.status_code == 404
 
 
 def test_order_payment_page_200(client, token_header):
     data = {
-        "coupon_code": "Test-coupon"
+        "coupon_code": "Test",
+        "shipping_id": 1
     }
-    response = client.post('/user/order_payment', json.dumps(data), headers=token_header)
+    response = client.post('/user/order_payment', json.dumps(data), headers={"Authorization": token_header})
     assert response.status_code == 200
     assert response.json()["message"] == "Please Find your Invoice on your email."
 
 
-def test_order_payment_page_not_authenticated_401(client, token_header):
+def test_order_payment_page_not_authenticated_401(client):
     data = {
-        "coupon_code": ""
+        "coupon_code": "",
+        "shipping_id": 1
     }
-    response = client.post('/user/order_payment', json.dumps(data))
+    response = client.post('/user/order_payment', json.dumps(data), headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "Not Authenticated"
 
 
 def test_order_payment_page_code_expired_404(client, token_header):
     data = {
-        "coupon_code": "Test"
+        "coupon_code": "Expired",
+        "shipping_id": 1
     }
-    response = client.post('/user/order_payment', json.dumps(data), headers=token_header)
+    response = client.post('/user/order_payment', json.dumps(data), headers={"Authorization": token_header})
     assert response.status_code == 404
     assert "Code has been Expired"
 
 
 def test_order_payment_page_empty_cart_404(client, token_header):
     data = {
-        "coupon_code": ""
+        "coupon_code": "",
+        "shipping_id": 1
     }
-    response = client.post('/user/order_payment', json.dumps(data), headers=token_header)
+    response = client.post('/user/order_payment', json.dumps(data), headers={"Authorization": token_header})
     assert response.status_code == 404
     assert "Cart is Empty!"
 
 
-def test_order_payment_page_address_not_found_404(client, token_header):
-    data = {
-        "coupon_code": ""
-    }
-    response = client.post('/user/order_payment', json.dumps(data), headers=token_header)
-    assert response.status_code == 404
-    assert "Shipping Address Not Found"
-
-
 def test_order_payment_page_incorrect_code_404(client, token_header):
     data = {
-        "coupon_code": "Incorrect_code"
+        "coupon_code": "Incorrect_code",
+        "shipping_id": 1
     }
-    response = client.post('/user/order_payment', json.dumps(data), headers=token_header)
+    response = client.post('/user/order_payment', json.dumps(data), headers={"Authorization": token_header})
     assert response.status_code == 404
     assert "Incorrect Coupon Code."
 
@@ -360,15 +363,15 @@ test_order_history_no_order_history_404: No orders found         : 404
 
 
 def test_order_history_200(client, token_header):
-    response = client.get('/user/order_history', headers=token_header)
+    response = client.get('/user/order_history', headers={"Authorization": token_header})
     assert response.status_code == 200
     # assert response.json()[0]["description"] == "order_Jo19MK14mB8UUu"
     # assert response.json()[0]["total_amount"] == 80
     # assert response.json()[0]["payment_status"] == "refunded"
 
 
-def test_order_history_not_authenticated_401(client, token_header):
-    response = client.get('/user/order_history')
+def test_order_history_not_authenticated_401(client):
+    response = client.get('/user/order_history', headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "Not Authenticated!"
 
@@ -386,19 +389,19 @@ test_cancel_order_no_record_found_404: Invalid Order ID          : 404
 
 
 def test_cancel_order_200(client, token_header):
-    response = client.delete('/user/cancel_order/1', headers=token_header)
+    response = client.delete('/user/cancel_order/1', headers={"Authorization": token_header})
     assert response.status_code == 200
     assert "Order has been Cancelled."
 
 
-def test_cancel_order_not_authenticated_401(client, token_header):
-    response = client.delete('/user/cancel_order/1')
+def test_cancel_order_not_authenticated_401(client):
+    response = client.delete('/user/cancel_order/1', headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "Not Authenticated!"
 
 
 def test_cancel_order_no_record_found_404(client, token_header):
-    response = client.delete('/user/cancel_order/100', headers=token_header)
+    response = client.delete('/user/cancel_order/100', headers={"Authorization": token_header})
     assert response.status_code == 404
     assert "No Records Found!"
 
@@ -415,13 +418,13 @@ test_view_balance_not_authenticated_401: Auth Error              : 401
 
 
 def test_view_balance_200(client, token_header):
-    response = client.get('/user/view_balance', headers=token_header)
+    response = client.get('/user/view_balance', headers={"Authorization": token_header})
     assert response.status_code == 200
     # assert response.json()["acc_balance"] == 360
 
 
-def test_view_balance_not_authenticated_401(client, token_header):
-    response = client.get('/user/view_balance')
+def test_view_balance_not_authenticated_401(client):
+    response = client.get('/user/view_balance', headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "Not Authenticated"
 
@@ -436,8 +439,8 @@ test_show_discount_coupon_200: Successfully fetched valid coupons: 200
 
 
 def test_show_discount_coupon_200(client, token_header):
-    response = client.get('/user/show_discount_coupon', headers=token_header)
+    response = client.get('/user/show_discount_coupon', headers={"Authorization": token_header})
     assert response.status_code == 200
     assert response.json()[0]["coupon_code"] == "Test"
     assert response.json()[0]["discount_percentage"] == 10
-    assert response.json()[0]["valid_till"] == "2022-03-03"
+    assert response.json()[0]["valid_till"] == "2030-12-12"
