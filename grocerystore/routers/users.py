@@ -156,6 +156,9 @@ async def webhook_received(request: Request, db: Session = Depends(get_db), stri
     except Exception as e:
         return {"Error": str(e)}
     event_type = event['type']
+    print('++++++++++++++++++++++++++++++++++++++++++++++')
+    print(event)
+    print('++++++++++++++++++++++++++++++++++++++++++++++')
     if event_type == 'checkout.session.completed':
         users.webhook_received(db, event_data['object']['payment_intent'],
                                event_data['object']['payment_status'])
@@ -166,6 +169,8 @@ async def webhook_received(request: Request, db: Session = Depends(get_db), stri
                                event_data['object']['payment_status'])
     elif event_type == 'charge.succeeded':
         print('Charge Succeeded')
+    elif event_type == 'checkout.session.expired':
+        print('payment-intent-payment-attempt-expired')
     else:
         print(f'Unhandled Event : {event_type}')
 
