@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, Request, Header
+from fastapi import APIRouter, Depends, status, Request, Header, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 from fastapi_pagination import Page, add_pagination, paginate, LimitOffsetPage
@@ -156,6 +156,9 @@ async def webhook_received(request: Request, db: Session = Depends(get_db), stri
     except Exception as e:
         return {"Error": str(e)}
     event_type = event['type']
+    print('++++++++++++++++++++++++++++++++++++++++++++++')
+    print(event)
+    print('++++++++++++++++++++++++++++++++++++++++++++++')
     if event_type == 'checkout.session.completed':
         users.webhook_received(db, event_data['object']['payment_intent'],
                                event_data['object']['payment_status'])
@@ -166,6 +169,8 @@ async def webhook_received(request: Request, db: Session = Depends(get_db), stri
                                event_data['object']['payment_status'])
     elif event_type == 'charge.succeeded':
         print('Charge Succeeded')
+    elif event_type == 'checkout.session.expired':
+        print('payment-intent-payment-attempt-expired')
     else:
         print(f'Unhandled Event : {event_type}')
 
@@ -173,14 +178,16 @@ async def webhook_received(request: Request, db: Session = Depends(get_db), stri
 
 
 @router.post("/order_payment")
-def order_payment_page(request: schemas.CheckDiscountCoupon,
-                       db: Session = Depends(get_db),
-                       current_user: schemas.User = Depends(oauth2.get_current_user)):
+async def order_payment_page(request: schemas.CheckDiscountCoupon,
+                             background_tasks: BackgroundTasks,
+                             db: Session = Depends(get_db),
+                             current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     Get the Payment Link to pay for your Order
     Parameters
     ----------------------------------------------------------
     request: Schemas Object - Contains data about discount coupon
+    background_tasks: BackgroundTasks - Complete Task in Background
     db: Database Object - Fetching Schemas Content
     current_user: User Object - Current Logged-In User Session
     ----------------------------------------------------------
@@ -189,7 +196,7 @@ def order_payment_page(request: schemas.CheckDiscountCoupon,
     ----------------------------------------------------------
     response: json object - Fetch status of Email-Confirmation of order placed
     """
-    return users.order_payment(request, db, current_user.email)
+    return users.order_payment(request, db, current_user.email, background_tasks)
 
 
 @router.get("/order_history")
