@@ -37,8 +37,8 @@ test_add_product_unauthorized_401: Except Admin. No Permission   : 401
 def test_add_product_201(client, admin_token_header):
     data = [{
         "image_file": "default.png",
-        "title": "TestTitle-8",
-        "description": "TestDescription-8",
+        "title": "TestTitle-10",
+        "description": "TestDescription-10",
         "price": 100,
         "quantity": 100
     }]
@@ -50,8 +50,8 @@ def test_add_product_201(client, admin_token_header):
 def test_add_product_unauthorized_401(client):
     data = [{
         "image_file": "default.png",
-        "title": "TestTitle-7",
-        "description": "TestDescription-7",
+        "title": "TestTitle-10",
+        "description": "TestDescription-10",
         "price": 100,
         "quantity": 100
     }]
@@ -76,12 +76,12 @@ test_update_product_no_changes_302: No Updates Detected          : 302
 def test_update_product_200(client, admin_token_header):
     data = {
         "image_file": "default.png",
-        "title": "TestTitle-8-updated",
-        "description": "TestDescription-8-updated",
+        "title": "TestTitle-10-updated",
+        "description": "TestDescription-10-updated",
         "price": 200,
         "quantity": 200
     }
-    response = client.put('admin/update_item/7', json.dumps(data), headers=admin_token_header)
+    response = client.put('admin/update_item/10', json.dumps(data), headers=admin_token_header)
     assert response.status_code == 200
     assert "Items Updated Successfully"
 
@@ -89,12 +89,12 @@ def test_update_product_200(client, admin_token_header):
 def test_update_product_unauthorized_401(client):
     data = {
         "image_file": "default.png",
-        "title": "TestTitle-8-updated",
-        "description": "TestDescription-8-updated",
+        "title": "TestTitle-10-updated",
+        "description": "TestDescription-10-updated",
         "price": 200,
         "quantity": 200
     }
-    response = client.put('admin/update_item/7', json.dumps(data), headers={"Authorization": "Bearer fake_token"})
+    response = client.put('admin/update_item/10', json.dumps(data), headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "UnAuthorized User"
 
@@ -102,8 +102,8 @@ def test_update_product_unauthorized_401(client):
 def test_update_product_not_found_404(client, admin_token_header):
     data = {
         "image_file": "default.png",
-        "title": "TestTitle-7",
-        "description": "TestDescription-7",
+        "title": "TestTitle-10",
+        "description": "TestDescription-10",
         "price": 200,
         "quantity": 200
     }
@@ -115,12 +115,12 @@ def test_update_product_not_found_404(client, admin_token_header):
 def test_update_product_no_changes_302(client, admin_token_header):
     data = {
         "image_file": "default.png",
-        "title": "TestTitle-7-updated",
-        "description": "TestDescription-7-updated",
+        "title": "TestTitle-10-updated",
+        "description": "TestDescription-10-updated",
         "price": 200,
         "quantity": 200
     }
-    response = client.put('admin/update_item/3', json.dumps(data), headers=admin_token_header)
+    response = client.put('admin/update_item/10', json.dumps(data), headers=admin_token_header)
     assert response.status_code == 302
     assert "No Changes Detected"
 
@@ -138,13 +138,13 @@ test_delete_product_not_found_404: Item ID entered, Not Found    : 404
 
 
 def test_delete_product_200(client, admin_token_header):
-    response = client.delete('/admin/delete_item/7', headers=admin_token_header)
+    response = client.delete('/admin/delete_item/2', headers=admin_token_header)
     assert response.status_code == 200
     assert "Item Deleted Successfully"
 
 
 def test_delete_product_unauthorized_401(client):
-    response = client.delete('/admin/delete_item/7', headers={"Authorization": "Bearer fake_token"})
+    response = client.delete('/admin/delete_item/2', headers={"Authorization": "Bearer fake_token"})
     assert response.status_code == 401
     assert "UnAuthorized User"
 
