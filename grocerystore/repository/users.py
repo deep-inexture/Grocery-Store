@@ -270,7 +270,6 @@ def order_payment(request, db, email, background_tasks):
     ----------------------------------------------------------
     response: json object - Fetch status of Email-Confirmation of order placed
     """
-
     if admin.is_admin(email, db):
         raise HTTPException(status_code=401, detail=messages.NOT_AUTHORIZE_401)
 
@@ -326,7 +325,8 @@ def order_payment(request, db, email, background_tasks):
 
 
 def webhook_received(db, payment_intent, payment_status):
-    update_payment_status = db.query(models.OrderDetails).filter(models.OrderDetails.payment_id == payment_intent).all()
+    update_payment_status = db.query(models.OrderDetails).filter(
+        models.OrderDetails.payment_id == payment_intent).all()
     for i in update_payment_status:
         i.payment_status = payment_status
 
