@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from typing import List
-from fastapi_pagination import Page, add_pagination, paginate
+from fastapi_pagination import Page, add_pagination, paginate, Params
 from .. import database, schemas, oauth2
 from ..repository import admin
 
@@ -19,7 +19,7 @@ get_db = database.get_db
 
 
 @router.get("/get_items", response_model=Page[schemas.Product])
-def all_products(db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
+def all_products(params: Params = Depends(), db: Session = Depends(get_db), current_user: schemas.User = Depends(oauth2.get_current_user)):
     """
     FETCH ALL PRODUCTS AVAILABLE IN GROCERY
     Parameters
@@ -32,7 +32,7 @@ def all_products(db: Session = Depends(get_db), current_user: schemas.User = Dep
     ----------------------------------------------------------
     response: json object - Fetch Data as per Schema-Content
     """
-    return paginate(admin.all_products(db, current_user.email))
+    return paginate(admin.all_products(db, current_user.email), params)
 
 
 @router.post("/create_items", status_code=status.HTTP_201_CREATED)
